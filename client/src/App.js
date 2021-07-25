@@ -25,7 +25,6 @@ class App extends Component {
       rankings: [],
       count: 10,
       status: 4, //Default status is searching for players...
-      // inParty: false
     };
   }
 
@@ -110,10 +109,6 @@ class App extends Component {
         default: console.log("DEFAULT: msg.status: ", msg.status); break;
       }
     };
-
-    // socket.onclose = event => {
-    //   console.log("Socket Closed Connection: ", event);
-    // };
 
     socket.onerror = error => {
       console.log("Socket Error: ", error);

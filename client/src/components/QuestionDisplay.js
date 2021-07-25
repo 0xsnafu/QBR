@@ -3,7 +3,7 @@ import Countdown from './Countdown';
 import Choices from './Choices';
 import { IsMatchOver } from '../utils/gameUtils';
 
-const QuestionDisplay = ({ props, status, count, isCorrect, question, isHost, inParty, SetIsCorrect, ResetState }) => {
+const QuestionDisplay = ({ props, count, isCorrect, question, isHost, inParty, SetIsCorrect, ResetState }) => {
     const [isButtonVisible, setIsButtonVisible] = useState(true);
     const [buttonText, setButtonText] = useState(inParty ? "Start!" : "Play Again")
 
@@ -13,10 +13,10 @@ const QuestionDisplay = ({ props, status, count, isCorrect, question, isHost, in
 
         if (inParty && !isHost) { setIsButtonVisible(false); return; } //Not party host, no need to see button ever
         if (inParty && isHost) {
-            if (status === 5 && IsMatchOver(props.rankings, props.myId)) { //Match finished
+            if (props.status === 5 && IsMatchOver(props.rankings, props.myId)) { //Match finished
                 setButtonText("Play Again");
                 setIsButtonVisible(true);
-            } else if (status === 4 && !props.question.message) {
+            } else if (props.status === 4 && !props.question.message) {
                 setButtonText("Play");
                 setIsButtonVisible(true);
             } else {
@@ -25,7 +25,7 @@ const QuestionDisplay = ({ props, status, count, isCorrect, question, isHost, in
         }
 
 
-    }, [status, isHost, question, inParty, props.rankings, props.myId, props.question.message])
+    }, [props.status, isHost, question, inParty, props.rankings, props.myId, props.question.message])
 
     const GenerateMessage = (statusToSend) => {
         let message = { status: statusToSend }
@@ -46,11 +46,11 @@ const QuestionDisplay = ({ props, status, count, isCorrect, question, isHost, in
 
     return (
         <>
-            {status === 0 && (<p>Match starts in <Countdown count={count} /></p>)}
+            {props.status === 0 && (<p>Match starts in <Countdown count={count} /></p>)}
 
-            {(status === 4 && !inParty && (<h3>Searching for players...</h3>))}
+            {(props.status === 4 && !inParty && (<h3>Searching for players...</h3>))}
 
-            {status === 5 && (
+            {props.status === 5 && (
                 <>
                     <p className='text-2xl md:text-4xl my-2'>{question.choices !== undefined && question.message}</p>
 

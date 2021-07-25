@@ -65,7 +65,7 @@ class Game extends Component {
     SetIsCorrect = (isCorrect) => { this.setState({ isCorrect }) }
 
     render() {
-        let { userList, question, status, count, myId, roomID } = this.props;
+        let { userList, question, count, myId, roomID } = this.props;
         let { isCorrect, isWinner, isHost, inParty } = this.state;
 
         return (
@@ -82,7 +82,7 @@ class Game extends Component {
                     </div>
 
                     <div className='col-start-2 col-span-10 md:col-start-3 md:col-span-8 border-2 border-green-500 rounded p-2 min-h-300 text-center'>
-                        <QuestionDisplay props={this.props} status={status} count={count} isCorrect={isCorrect}
+                        <QuestionDisplay props={this.props} count={count} isCorrect={isCorrect}
                             question={question} isHost={isHost} inParty={inParty}
                             SetIsCorrect={x => this.SetIsCorrect(x)} ResetState={() => this.props.ResetState()} />
                     </div>

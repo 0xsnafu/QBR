@@ -1,0 +1,82 @@
+import React, { useState } from 'react'
+import { Link } from "react-router-dom";
+
+// import ReactGA from 'react-ga';
+// ReactGA.initialize('UA-103417969-4');
+// ReactGA.pageview('/');
+
+const Landing = () => {
+    const [roomID, setRoomID] = useState('')
+    const [errorMsg, setErrorMsg] = useState('')
+
+    const SearchForRoom = () => {
+        if (roomID.length === 0) return;
+
+        fetch(`/search?roomID=${roomID}`)
+            .then(res => {
+                console.log(res.status)
+                if (res.status === 200) { //Room found
+                    console.log('room found!');
+                    //Show SUCCESS flash message
+                    sessionStorage.setItem('inParty', true);
+                    window.location.replace(window.location.origin + '/play/?roomID=' + roomID);
+                } else if (res.status === 404) { //Room NOT found
+                    console.log('room NOT found!');
+                    setErrorMsg('Room not found :(');
+                    //Show ERROR flash message
+                } else if (res.status === 406) { //Room is full
+                    console.log('room is full :(');
+                    setErrorMsg('Room is full :(');
+                    //Show ERROR flash message
+                }
+            })
+            .catch(err => console.log(err))
+    }
+
+    const EnterPressed = e => { if (e.key === 'Enter') { SearchForRoom() } }
+
+    return (
+        <div className="grid grid-cols-12 gap-4">
+            <div className='col-start-2 col-span-10 md:col-start-3 md:col-span-8 border-2 border-green-500 rounded p-8'>
+                <div className="grid grid-cols-12 gap-4">
+
+                    <div className='col-span-12 md:col-span-8'>
+                        <h1 className='text-3xl md:text-6xl'>Quick Brain Racers</h1>
+                        <p>Play quick, simple brain games with others</p>
+                    </div>
+
+                    <div className='col-span-12 md:col-span-4 md:col-start-9'>
+                        <Link to={`/play`} onClick={() => sessionStorage.setItem('inParty', false)}>
+                            <button className='bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full h-full text-xl md:text-3xl'>Play
+                                <span className='inline-block ml-2 text-white absolute'>
+                                    <svg className='h-7 w-7 relative top-1 md:top-1.5 animate-bounce z-0' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </span>
+                            </button>
+                        </Link>
+                    </div>
+
+                </div>
+
+                <hr className='my-2' />
+
+                <div>
+                    <p className={`${errorMsg.length > 0 ? 'block' : 'hidden'} text-red-500 font-bold text-center md:text-left`}>{errorMsg}</p>
+
+                    <input className='border border-purple-400 rounded py-1 px-2 w-3/4 md:w-max block md:inline mx-auto md:m-0' placeholder='Search room code...' value={roomID}
+                        onKeyPress={e => EnterPressed(e)} onChange={e => setRoomID(e.target.value.toUpperCase())} />
+
+                    <p className='block md:inline mx-4 text-center'>or</p>
+
+                    <Link to={`/play`} onClick={() => sessionStorage.setItem('inParty', true)}>
+                        <button className='bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded text-md w-3/4 md:w-max mx-auto block md:inline'>Party Play</button>
+                    </Link>
+
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export default Landing;

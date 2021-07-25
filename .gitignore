@@ -1,0 +1,7 @@
+#client
+/client/node_modules
+/client/build
+/client/.eslintcache
+
+#server
+/server/.env

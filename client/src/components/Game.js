@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import ReactGA from 'react-ga';
 import queryString from 'query-string';
 import { useDispatch, useSelector } from 'react-redux';
-import { setMyID, setRoomID, setUserList, setQuestion, setRankings, setCount, setStatus, setIsHost, ResetState } from '../redux/game';
+import { setMyID, setRoomID, setUserList, setQuestion, setRankings, setCount, setStatus, setIsHost, ResetState, setInParty, setIsWinner } from '../redux/game';
 
 import UserList from "./UserList";
 import Fireworks from "./Fireworks";
@@ -10,23 +11,23 @@ import QuestionDisplay from "./QuestionDisplay";
 import { OrderUserList } from "../utils/userUtils";
 import { IsMatchOver } from "../utils/gameUtils";
 
-// import ReactGA from 'react-ga';
-// ReactGA.initialize('UA-103417969-4');
-// ReactGA.pageview('/play');
+if (process.env.NODE_ENV !== 'development') {
+    ReactGA.initialize('UA-103417969-4');
+    ReactGA.pageview('/play');
+}
 
 let socket;
 
 const Game = () => {
-    const { myID, roomID, userList, question, rankings, inParty, isHost } = useSelector(state => state.game);
+    const { myID, roomID, userList, question, rankings, inParty, isHost, isWinner } = useSelector(state => state.game);
     const dispatch = useDispatch();
-
-    const [isWinner, setIsWinner] = useState(false);
 
     const Connect = (queryRoomId) => {
         //queryRoomId will be undefined if creating a room. If joining, queryRoomId should be the room id
         if (inParty && queryRoomId === undefined) { //Will create party Room
             socket = new WebSocket("ws://localhost:5000/ws?inParty=true&roomID=");
-        } else if (inParty && queryRoomId !== undefined) { //Will join party Room
+        } else if (queryRoomId !== undefined) { //Will join party Room
+            if (!inParty) { dispatch(setInParty(true)) }
             socket = new WebSocket(`ws://localhost:5000/ws?inParty=true&roomID=${queryRoomId}`);
         } else { //Will search for open room
             socket = new WebSocket("ws://localhost:5000/ws?inParty=false&roomID=");
@@ -35,30 +36,18 @@ const Game = () => {
 
     //Runs only when component first mounts
     useEffect(() => {
-        //If in .herokuapp url OR in http url, redirect to live url. Doesn't redirect in localhost
-        if ((window.location.hostname.includes('herokuapp') || window.location.protocol.includes('http:')) && !window.location.hostname.includes('localhost')) {
-            window.location.replace("https://quickbrainracers.com");
+        let query = queryString.parse(window.location.search);
+
+        //Makes this player the host if creating a Party Room
+        if (query.roomID === undefined) {
+            dispatch(setIsHost(true));
+        } else {
+            dispatch(setIsHost(false));
         }
 
-        if (!socket && !inParty) { Connect(undefined) }
+        if (!socket && query.roomID) { Connect(query.roomID) }
+        if (!socket && !query.roomID) { Connect(undefined) }
 
-        if (inParty) {
-            let query = queryString.parse(window.location.search);
-
-            //Makes this player the host if creating a Party Room
-            if (query.roomID === undefined) {
-                dispatch(setIsHost(true));
-            } else {
-                dispatch(setIsHost(false));
-            }
-
-            if (!socket) { Connect(query.roomID) };
-        }
-        // eslint-disable-next-line
-    }, [inParty])
-
-    //Runs only when component is dismounting
-    useEffect(() => {
         return () => {
             const Disconnect = () => {
                 if (socket === undefined) return;
@@ -69,10 +58,13 @@ const Game = () => {
             }
             Disconnect()
         }
+
         // eslint-disable-next-line
-    }, [inParty]) //Cleanup runs on component dismount
+    }, [])
+
 
     useEffect(() => {
+        if (!socket) return;
 
         socket.onmessage = (data) => {
             let msg = JSON.parse(data.data);
@@ -117,13 +109,13 @@ const Game = () => {
         };
 
         if (socket !== undefined && rankings[0] === myID && !isWinner) { //Will set winner if index 0 in rankings is this user and not already set as winner
-            setIsWinner(true);
+            dispatch(setIsWinner(true));
 
             if (document.getElementById('victory-audio') === null) return //document.getElementById('victory-audio') is occasionally null. No idea why.
             document.getElementById('victory-audio').play()
             document.getElementById('fireworks-audio').play()
         } else if (rankings.length === 0 && isWinner) { //If rankings get cleared(Play Again) and user was winner, clears winner
-            setIsWinner(false);
+            dispatch(setIsWinner(false));
         }
 
         if (inParty) {

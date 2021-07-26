@@ -9,7 +9,8 @@ const initialState = {
     count: 10,
     status: 4,
     inParty: false,
-    isHost: false
+    isHost: false,
+    isWinner: false
 }
 
 export const gameSlice = createSlice({
@@ -43,6 +44,9 @@ export const gameSlice = createSlice({
         setIsHost: (state, action) => {
             state.isHost = action.payload
         },
+        setIsWinner: (state, action) => {
+            state.isWinner = action.payload
+        },
         ResetState: (state) => {
             state.question = {};
             state.roomID = state.inParty ? state.roomID : "";
@@ -53,6 +57,6 @@ export const gameSlice = createSlice({
     },
 })
 
-export const { setMyID, setRoomID, setUserList, setQuestion, setRankings, setCount, setStatus, setInParty, setIsHost, ResetState } = gameSlice.actions
+export const { setMyID, setRoomID, setUserList, setQuestion, setRankings, setCount, setStatus, setInParty, setIsHost, setIsWinner, ResetState } = gameSlice.actions
 
 export default gameSlice.reducer

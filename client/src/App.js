@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Route } from "react-router-dom";
 
 import './index.css';
@@ -10,6 +10,13 @@ import About from "./components/About";
 import Game from "./components/Game";
 
 const App = () => {
+  useEffect(() => {
+    //If in .herokuapp url OR in http url, redirect to live url. Doesn't redirect in localhost
+    if ((window.location.hostname.includes('herokuapp') || window.location.protocol.includes('http:')) && !window.location.hostname.includes('localhost')) {
+      window.location.replace("https://quickbrainracers.com");
+    }
+  }, [])
+
   return (
     <Router>
       <div className="App">

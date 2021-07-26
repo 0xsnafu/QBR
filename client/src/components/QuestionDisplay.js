@@ -30,7 +30,6 @@ const QuestionDisplay = ({ socket }) => {
             }
         }
 
-        console.log('question:', question)
     }, [status, isHost, question, inParty, rankings, myID])
 
     const GenerateMessage = (statusToSend) => {

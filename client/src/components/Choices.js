@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { IsMatchOver } from "../utils/gameUtils";
 
-const Choices = ({ choices, props, isCorrect, SetIsCorrect }) => {
+const Choices = ({ choices, rankings, socket, myID, question }) => {
     const [isIncorrect, setIsIncorrect] = useState(false);
 
     const CheckAnswer = (choice) => {
-        if (IsMatchOver(props.rankings, props.myId)) return;
+        if (IsMatchOver(rankings, myID)) return;
 
-        if (choice === props.question.answer) { //Correct
-            SetIsCorrect(true);
+        if (choice === question.answer) { //Correct
             document.getElementById('correct-audio').play()
         } else { //Incorrect
             setIsIncorrect(true);
@@ -22,13 +21,13 @@ const Choices = ({ choices, props, isCorrect, SetIsCorrect }) => {
             body: [choice.toString()]
         }
 
-        props.socket.send(JSON.stringify(message))
+        socket.send(JSON.stringify(message))
     }
 
     return (
         choices !== undefined && choices.map((choice, index) => {
             return <button key={index} className={`${index === 0 && ('md:col-start-2')} mx-auto font-bold rounded-full h-24 w-24 m-3 text-2xl
-                ${isIncorrect ? 'border-white bg-red-600 text-white' : isCorrect ? 'border-white bg-green-600 text-white' : 'border-2 border-black'}`}
+                ${isIncorrect ? 'border-white bg-red-600 text-white' : 'border-2 border-black'}`}
                 disabled={isIncorrect} onClick={() => CheckAnswer(choice)}>{choice}</button>
         })
     )

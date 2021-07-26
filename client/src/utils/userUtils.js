@@ -23,7 +23,7 @@ export function OrderUserList(userList, clientList, hasGameStarted) {
             userList.push(client);
         }
     }
-
+    // console.log(userList[0])
     return userList
 }
 

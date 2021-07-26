@@ -1,4 +1,4 @@
-const UserList = ({ userList, myId, rankings }) => {
+const UserList = ({ userList, myID, rankings }) => {
 
     const CalculateRankings = (userId) => {
         for (let i = 0; i < rankings.length; i++) {
@@ -23,7 +23,7 @@ const UserList = ({ userList, myId, rankings }) => {
                         <div className='col-span-9 md:col-span-12'>
                             <span className='font-bold mx-1 float-left'>{user.elapsedTime.length > 0 && (user.elapsedTime)}</span>
                             {user.username}
-                            {user.id === myId && (<span className='text-green-600 font-bold'>(You)</span>)}
+                            {user.id === myID && (<span className='text-green-600 font-bold'>(You)</span>)}
                             {user.isHost && (<span className='text-red-600 font-bold'>(host)</span>)}
                         </div>
 

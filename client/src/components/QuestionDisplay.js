@@ -2,21 +2,22 @@ import { useState, useEffect } from 'react';
 import Countdown from './Countdown';
 import Choices from './Choices';
 import { IsMatchOver } from '../utils/gameUtils';
+import { ResetState } from '../redux/game';
 
-const QuestionDisplay = ({ props, count, isCorrect, question, isHost, inParty, SetIsCorrect, ResetState }) => {
+const QuestionDisplay = ({ socket, status, rankings, myID, count, question, isHost, inParty }) => {
     const [isButtonVisible, setIsButtonVisible] = useState(true);
     const [buttonText, setButtonText] = useState(inParty ? "Start!" : "Play Again")
 
     useEffect(() => {
-        if (!inParty && IsMatchOver(props.rankings, props.myId)) { setIsButtonVisible(true); return; }
-        if (!inParty && !IsMatchOver(props.rankings, props.myId)) { setIsButtonVisible(false); return; }
+        if (!inParty && IsMatchOver(rankings, myID)) { setIsButtonVisible(true); return; }
+        if (!inParty && !IsMatchOver(rankings, myID)) { setIsButtonVisible(false); return; }
 
         if (inParty && !isHost) { setIsButtonVisible(false); return; } //Not party host, no need to see button ever
         if (inParty && isHost) {
-            if (props.status === 5 && IsMatchOver(props.rankings, props.myId)) { //Match finished
+            if (status === 5 && IsMatchOver(rankings, myID)) { //Match finished
                 setButtonText("Play Again");
                 setIsButtonVisible(true);
-            } else if (props.status === 4 && !props.question.message) {
+            } else if (status === 4 && !question.message) {
                 setButtonText("Play");
                 setIsButtonVisible(true);
             } else {
@@ -24,13 +25,13 @@ const QuestionDisplay = ({ props, count, isCorrect, question, isHost, inParty, S
             }
         }
 
-
-    }, [props.status, isHost, question, inParty, props.rankings, props.myId, props.question.message])
+        console.log('question:', question)
+    }, [status, isHost, question, inParty, rankings, myID, question.message])
 
     const GenerateMessage = (statusToSend) => {
         let message = { status: statusToSend }
 
-        props.socket.send(JSON.stringify(message));
+        socket.send(JSON.stringify(message));
         ResetState();
     }
 
@@ -46,16 +47,16 @@ const QuestionDisplay = ({ props, count, isCorrect, question, isHost, inParty, S
 
     return (
         <>
-            {props.status === 0 && (<p>Match starts in <Countdown count={count} /></p>)}
+            {status === 0 && (<p>Match starts in <Countdown count={count} /></p>)}
 
-            {(props.status === 4 && !inParty && (<h3>Searching for players...</h3>))}
+            {(status === 4 && !inParty && (<h3>Searching for players...</h3>))}
 
-            {props.status === 5 && (
+            {status === 5 && (
                 <>
                     <p className='text-2xl md:text-4xl my-2'>{question.choices !== undefined && question.message}</p>
 
                     <div className='grid grid-cols-2 md:grid-cols-6 '>
-                        <Choices isCorrect={isCorrect} choices={question.choices} props={props} SetIsCorrect={x => SetIsCorrect(x)} />
+                        <Choices choices={question.choices} rankings={rankings} myID={myID} socket={socket} question={question} />
                     </div>
 
                     <audio id='victory-audio' src='/audio/victory-sound.mp3' preload='auto' />

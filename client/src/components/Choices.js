@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { IsMatchOver } from "../utils/gameUtils";
+import { useSelector } from 'react-redux';
 
-const Choices = ({ choices, rankings, socket, myID, question }) => {
+const Choices = ({ socket }) => {
+    const { myID, question, rankings } = useSelector(state => state.game);
     const [isIncorrect, setIsIncorrect] = useState(false);
 
     const CheckAnswer = (choice) => {
@@ -13,7 +15,7 @@ const Choices = ({ choices, rankings, socket, myID, question }) => {
             setIsIncorrect(true);
             document.getElementById('incorrect-audio').play()
 
-            setTimeout(() => { setIsIncorrect(false) }, 2000);
+            setTimeout(() => { setIsIncorrect(false) }, 750);
         }
 
         let message = {
@@ -25,7 +27,7 @@ const Choices = ({ choices, rankings, socket, myID, question }) => {
     }
 
     return (
-        choices !== undefined && choices.map((choice, index) => {
+        question.choices !== undefined && question.choices.map((choice, index) => {
             return <button key={index} className={`${index === 0 && ('md:col-start-2')} mx-auto font-bold rounded-full h-24 w-24 m-3 text-2xl
                 ${isIncorrect ? 'border-white bg-red-600 text-white' : 'border-2 border-black'}`}
                 disabled={isIncorrect} onClick={() => CheckAnswer(choice)}>{choice}</button>

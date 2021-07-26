@@ -3,11 +3,13 @@ import { createSlice } from '@reduxjs/toolkit'
 const initialState = {
     myID: '',
     roomID: '',
+    userList: [],
     question: {},
     rankings: [],
     count: 10,
     status: 4,
-    inParty: false
+    inParty: false,
+    isHost: false
 }
 
 export const gameSlice = createSlice({
@@ -19,6 +21,9 @@ export const gameSlice = createSlice({
         },
         setRoomID: (state, action) => {
             state.roomID = action.payload
+        },
+        setUserList: (state, action) => {
+            state.userList = action.payload
         },
         setQuestion: (state, action) => {
             state.question = action.payload
@@ -35,15 +40,19 @@ export const gameSlice = createSlice({
         setInParty: (state, action) => {
             state.inParty = action.payload
         },
+        setIsHost: (state, action) => {
+            state.isHost = action.payload
+        },
         ResetState: (state) => {
             state.question = {};
             state.roomID = state.inParty ? state.roomID : "";
-            state.status = 4;
             state.rankings = [];
+            state.status = 4;
+            state.userList = state.inParty ? state.userList : [];
         },
     },
 })
 
-export const { setMyID, setRoomID, setQuestion, setRankings, setCount, setStatus, setInParty, ResetState } = gameSlice.actions
+export const { setMyID, setRoomID, setUserList, setQuestion, setRankings, setCount, setStatus, setInParty, setIsHost, ResetState } = gameSlice.actions
 
 export default gameSlice.reducer

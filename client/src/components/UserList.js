@@ -1,4 +1,8 @@
-const UserList = ({ userList, myID, rankings }) => {
+import React from 'react';
+import { useSelector } from 'react-redux';
+
+const UserList = () => {
+    const { userList, myID, rankings } = useSelector(state => state.game);
 
     const CalculateRankings = (userId) => {
         for (let i = 0; i < rankings.length; i++) {

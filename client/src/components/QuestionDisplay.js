@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
-import Countdown from './Countdown';
-import Choices from './Choices';
 import { IsMatchOver } from '../utils/gameUtils';
 import { ResetState } from '../redux/game';
+import { useDispatch, useSelector } from 'react-redux';
 
-const QuestionDisplay = ({ socket, status, rankings, myID, count, question, isHost, inParty }) => {
+import Countdown from './Countdown';
+import Choices from './Choices';
+
+const QuestionDisplay = ({ socket }) => {
+    const { myID, question, rankings, count, status, inParty, isHost } = useSelector(state => state.game);
+    const dispatch = useDispatch();
+
     const [isButtonVisible, setIsButtonVisible] = useState(true);
     const [buttonText, setButtonText] = useState(inParty ? "Start!" : "Play Again")
 
@@ -26,13 +31,13 @@ const QuestionDisplay = ({ socket, status, rankings, myID, count, question, isHo
         }
 
         console.log('question:', question)
-    }, [status, isHost, question, inParty, rankings, myID, question.message])
+    }, [status, isHost, question, inParty, rankings, myID])
 
     const GenerateMessage = (statusToSend) => {
         let message = { status: statusToSend }
 
         socket.send(JSON.stringify(message));
-        ResetState();
+        dispatch(ResetState());
     }
 
     const Play = () => {
@@ -56,7 +61,7 @@ const QuestionDisplay = ({ socket, status, rankings, myID, count, question, isHo
                     <p className='text-2xl md:text-4xl my-2'>{question.choices !== undefined && question.message}</p>
 
                     <div className='grid grid-cols-2 md:grid-cols-6 '>
-                        <Choices choices={question.choices} rankings={rankings} myID={myID} socket={socket} question={question} />
+                        <Choices socket={socket} />
                     </div>
 
                     <audio id='victory-audio' src='/audio/victory-sound.mp3' preload='auto' />
@@ -65,7 +70,7 @@ const QuestionDisplay = ({ socket, status, rankings, myID, count, question, isHo
                     <audio id='incorrect-audio' src='/audio/incorrect-sound.mp3' preload='auto' />
                 </>
             )}
-
+            {isButtonVisible}
             <button className={`bg-blue-400 hover:bg-blue-600 text-white font-bold py-1 px-2 rounded text-md ${isButtonVisible ? 'inline' : 'hidden'}`}
                 onClick={() => Play()}>{buttonText}</button>
         </>

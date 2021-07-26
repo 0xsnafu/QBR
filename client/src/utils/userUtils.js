@@ -1,4 +1,10 @@
-export function OrderUserList(userList, clientList, hasGameStarted) {
+export function OrderUserList(immerUserList, clientList, hasGameStarted) {
+    let userList = []
+
+    //Transfers users from immutable redux userList to regular array, just for this func
+    for (let i = 0; i < immerUserList.length; i++) {
+        userList.push(immerUserList[i])
+    }
 
     //Will remove disconnected Users if game hasn't started yet
     if (userList.length > clientList.length && !hasGameStarted) {
@@ -23,7 +29,7 @@ export function OrderUserList(userList, clientList, hasGameStarted) {
             userList.push(client);
         }
     }
-    // console.log(userList[0])
+
     return userList
 }
 

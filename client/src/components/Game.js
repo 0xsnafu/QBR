@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import queryString from 'query-string';
 import { useDispatch, useSelector } from 'react-redux';
-import { setMyID, setRoomID, setQuestion, setRankings, setCount, setStatus, ResetState } from '../redux/game';
+import { setMyID, setRoomID, setUserList, setQuestion, setRankings, setCount, setStatus, setIsHost, ResetState } from '../redux/game';
 
 import UserList from "./UserList";
 import Fireworks from "./Fireworks";
@@ -14,21 +14,13 @@ import { IsMatchOver } from "../utils/gameUtils";
 // ReactGA.initialize('UA-103417969-4');
 // ReactGA.pageview('/play');
 
-
-//MAIN ISSUE RIGHT NOW IS THAT USER LIST COMPONENT DOESNT SEEM TO UPDATE UNTIL ROOM IS FULL
-//SHOULD BE UPDATING EVEN FOR FIRST PLAYER
-//MAYBE MAKE USERLIST STATE IN USERLIST COMPONENT? OR USE REDUX FOR USERLIST?
-
-
 let socket;
 
 const Game = () => {
-    const { myID, roomID, question, rankings, count, status, inParty } = useSelector(state => state.game);
+    const { myID, roomID, userList, question, rankings, inParty, isHost } = useSelector(state => state.game);
     const dispatch = useDispatch();
 
     const [isWinner, setIsWinner] = useState(false);
-    const [isHost, setIsHost] = useState(!inParty ? false : true);
-    const [userList, setUserList] = useState([]);
 
     const Connect = (queryRoomId) => {
         //queryRoomId will be undefined if creating a room. If joining, queryRoomId should be the room id
@@ -39,14 +31,55 @@ const Game = () => {
         } else { //Will search for open room
             socket = new WebSocket("ws://localhost:5000/ws?inParty=false&roomID=");
         }
+    }
+
+    //Runs only when component first mounts
+    useEffect(() => {
+        //If in .herokuapp url OR in http url, redirect to live url. Doesn't redirect in localhost
+        if ((window.location.hostname.includes('herokuapp') || window.location.protocol.includes('http:')) && !window.location.hostname.includes('localhost')) {
+            window.location.replace("https://quickbrainracers.com");
+        }
+
+        if (!socket && !inParty) { Connect(undefined) }
+
+        if (inParty) {
+            let query = queryString.parse(window.location.search);
+
+            //Makes this player the host if creating a Party Room
+            if (query.roomID === undefined) {
+                dispatch(setIsHost(true));
+            } else {
+                dispatch(setIsHost(false));
+            }
+
+            if (!socket) { Connect(query.roomID) };
+        }
+        // eslint-disable-next-line
+    }, [inParty])
+
+    //Runs only when component is dismounting
+    useEffect(() => {
+        return () => {
+            const Disconnect = () => {
+                if (socket === undefined) return;
+
+                socket.close(1000); //1000 is normal closing status for WS
+                socket = undefined;
+                dispatch(ResetState());
+            }
+            Disconnect()
+        }
+        // eslint-disable-next-line
+    }, [inParty]) //Cleanup runs on component dismount
+
+    useEffect(() => {
 
         socket.onmessage = (data) => {
             let msg = JSON.parse(data.data);
-            // console.log(msg)
 
             switch (msg.status) {
                 case 0: //Receiving countdown
-                    if (inParty && IsMatchOver(rankings, myID)) { ResetState(); }
+                    if (inParty && IsMatchOver(rankings, myID)) { dispatch(ResetState()); }
                     dispatch(setStatus(0));
                     dispatch(setCount(msg.body));
                     break;
@@ -57,10 +90,7 @@ const Game = () => {
                     break;
                 case 2: //Getting user list        
                     let clientList = msg.body;
-                    // console.log(userList.length)
-                    // console.log(clientList.length)
-                    // console.log(question.message)
-                    setUserList(OrderUserList(userList, clientList, question.message ? true : false))
+                    dispatch(setUserList(OrderUserList(userList, clientList, question.message ? true : false)));
                     break;
                 case 3: //Getting my ID
                     dispatch(setMyID(msg.body[0]));
@@ -85,46 +115,6 @@ const Game = () => {
         socket.onerror = error => {
             console.log("Socket Error: ", error);
         };
-    }
-
-    //Runs only when component first mounts
-    useEffect(() => {
-        if (!socket && !inParty) { Connect(undefined) }
-
-        if (inParty) {
-            let query = queryString.parse(window.location.search);
-
-            //Makes this player the host if creating a Party Room
-            if (query.roomID === undefined) {
-                setIsHost(true);
-            } else {
-                setIsHost(false);
-            }
-
-            if (!socket) { Connect(query.roomID) };
-        }
-    }, [inParty])
-
-    //Runs only when component is dismounting
-    useEffect(() => {
-        return () => {
-            const Disconnect = () => {
-                if (socket === undefined) return;
-
-                socket.close(1000); //1000 is normal closing status for WS
-                socket = undefined;
-                ResetState();
-                setUserList(inParty ? userList : []);
-            }
-            Disconnect()
-        }
-    }, [userList, inParty]) //Cleanup runs on component dismount
-
-    useEffect(() => {
-        //If in .herokuapp url OR in http url, redirect to live url. Doesn't redirect in localhost
-        if ((window.location.hostname.includes('herokuapp') || window.location.protocol.includes('http:')) && !window.location.hostname.includes('localhost')) {
-            window.location.replace("https://quickbrainracers.com");
-        }
 
         if (socket !== undefined && rankings[0] === myID && !isWinner) { //Will set winner if index 0 in rankings is this user and not already set as winner
             setIsWinner(true);
@@ -140,14 +130,12 @@ const Game = () => {
             //If this current user was not the host before but now is the host(old host disconnected), set this user as new host
             for (let i = 0; i < userList.length; i++) {
                 if (userList[i].id === myID && userList[i].isHost && !isHost) {
-                    setIsHost(true);
+                    dispatch(setIsHost(true));
                 }
             }
         }
-
+        // eslint-disable-next-line
     }, [inParty, question, rankings, myID, isWinner, userList, isHost])
-
-
 
     return (
         <>
@@ -159,14 +147,11 @@ const Game = () => {
                     </div>)}
 
                 <div className='col-start-2 col-span-10 md:col-start-3 md:col-span-8 border-2 border-green-500 rounded'>
-                    <UserList userList={userList} myID={myID} rankings={rankings} />
+                    <UserList />
                 </div>
 
                 <div className='col-start-2 col-span-10 md:col-start-3 md:col-span-8 border-2 border-green-500 rounded p-2 min-h-300 text-center'>
-                    <QuestionDisplay count={count} socket={socket}
-                        status={status} rankings={rankings} myID={myID}
-                        question={question} isHost={isHost} inParty={inParty}
-                    />
+                    <QuestionDisplay socket={socket} />
                 </div>
 
             </div>

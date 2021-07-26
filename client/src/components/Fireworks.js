@@ -1,4 +1,7 @@
-const Fireworks = ({ isWinner }) => {
+import { useSelector } from "react-redux"
+
+const Fireworks = () => {
+    const { isWinner } = useSelector(state => state.game);
 
     return (
         <div className={`${isWinner ? 'pyro' : 'hidden'}`}>

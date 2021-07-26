@@ -148,7 +148,7 @@ const Game = () => {
 
             </div>
 
-            <Fireworks isWinner={isWinner} />
+            <Fireworks />
         </>
     );
 }

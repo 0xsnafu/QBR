@@ -18,8 +18,8 @@ func routes(app *config.AppConfig) http.Handler {
 
 	mux.Get("/search", func(w http.ResponseWriter, r *http.Request) {
 		params := r.URL.Query()
-
 		wasRoomFound := false
+
 		for room := range websocket.Rooms {
 			if room.ID == params.Get("roomID") {
 				wasRoomFound = true
@@ -36,6 +36,7 @@ func routes(app *config.AppConfig) http.Handler {
 
 		if !wasRoomFound {
 			w.WriteHeader(http.StatusNotFound)
+			r.Body.Close()
 		}
 	})
 

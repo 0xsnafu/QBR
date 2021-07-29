@@ -6,21 +6,23 @@ import (
 	"net/http"
 
 	"github.com/MartyMav/QBRServer/cmd/internal/config"
+	"github.com/MartyMav/QBRServer/cmd/internal/database"
+
 	"github.com/MartyMav/QBRServer/cmd/internal/websocket"
 )
 
-var app config.AppConfig
-
 func main() {
-	app.Setup()
+	config.App.Setup()
+
+	database.Connect()
 
 	websocket.Rooms = make(map[*websocket.Room]bool)
 
-	fmt.Println("Starting Quick Brain Racers Server on " + app.Address)
+	fmt.Println("Starting Quick Brain Racers Server on " + config.App.Address)
 
 	srv := &http.Server{
-		Addr:    app.Address,
-		Handler: routes(&app),
+		Addr:    config.App.Address,
+		Handler: routes(),
 	}
 
 	err := srv.ListenAndServe()

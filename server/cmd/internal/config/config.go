@@ -14,7 +14,12 @@ import (
 type AppConfig struct {
 	InProduction bool
 	Address      string
+	DBUser       string
+	DBPass       string
+	SecretKey    string
 }
+
+var App AppConfig
 
 func (app *AppConfig) Setup() {
 	rand.Seed(time.Now().UnixNano())
@@ -30,4 +35,7 @@ func (app *AppConfig) Setup() {
 	}
 
 	app.Address = os.Getenv("ADDRESS")
+	app.DBUser = os.Getenv("DB_USER")
+	app.DBPass = os.Getenv("DB_PASS")
+	app.SecretKey = os.Getenv("SECRET_KEY")
 }

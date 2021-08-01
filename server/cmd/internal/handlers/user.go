@@ -2,9 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/MartyMav/QBRServer/cmd/internal/forms"
+	"github.com/jackc/pgconn"
 
 	"github.com/golang-jwt/jwt"
 
@@ -16,44 +21,95 @@ import (
 	"github.com/MartyMav/QBRServer/cmd/internal/models"
 )
 
-func Register(w http.ResponseWriter, r *http.Request) error {
-	r.ParseForm()
+type CustomClaims struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	jwt.StandardClaims
+}
 
+func Register(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		log.Println(err)
+	}
+
+	form := forms.New(r.PostForm)
+	form.Required("email", "password")
+	form.MinLength("password", 3)
+	form.IsEmail("email")
+
+	if !form.Valid() {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(form)
+		return
+	}
+
+	email := r.Form.Get("email")
 	password, _ := bcrypt.GenerateFromPassword([]byte(r.Form.Get("password")), 14)
+
 	user := models.User{
-		Email:    r.Form.Get("email"),
+		Email:    email,
 		Password: password,
 	}
 
-	database.DB.Create(&user)
-	return json.NewEncoder(w).Encode(user)
+	if results := database.DB.Create(&user); results.Error != nil {
+		//Error 23505 - record already exists in DB
+		if pgError := results.Error.(*pgconn.PgError); errors.Is(results.Error, pgError) {
+			switch pgError.Code {
+			case "23505":
+				w.WriteHeader(http.StatusConflict)
+				json.NewEncoder(w).Encode("Email already exists")
+				return
+			}
+		}
+	}
 
+	w.WriteHeader(http.StatusOK)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	if err := r.ParseForm(); err != nil {
+		log.Println(err)
+	}
+
+	email := r.Form.Get("email")
+	password := r.Form.Get("password")
+
+	form := forms.New(r.PostForm)
+	form.Required("email", "password")
+	form.IsEmail("email")
+
+	if !form.Valid() {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(form)
+		return
+	}
 
 	var user models.User
 	expiryDate := time.Now().Add(time.Hour * 24) //1 day
 
-	database.DB.Where("email = ?", r.Form.Get("email")).First(&user)
+	database.DB.Where("email = ?", email).First(&user)
 
 	if user.Id == 0 {
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode("User not found")
+		json.NewEncoder(w).Encode("Email not found")
 		return
 	}
 
-	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(r.Form.Get("password"))); err != nil {
+	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(password)); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode("Incorrect password")
 		return
 	}
 
-	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
-		Issuer:    strconv.Itoa(int(user.Id)),
-		ExpiresAt: expiryDate.Unix(),
-	})
+	customClaims := CustomClaims{
+		user.Email,
+		user.Username,
+		jwt.StandardClaims{
+			Issuer:    strconv.Itoa(int(user.Id)),
+			ExpiresAt: expiryDate.Unix(),
+		},
+	}
+	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, customClaims)
 
 	token, err := claims.SignedString([]byte(config.App.SecretKey))
 	if err != nil {
@@ -66,12 +122,12 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		Name:     "jwt",
 		Value:    token,
 		Expires:  expiryDate,
-		HttpOnly: true,
+		HttpOnly: false,
 		Secure:   config.App.InProduction,
 	}
+
 	http.SetCookie(w, cookie)
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode("Success!")
 }
 
 func User(w http.ResponseWriter, r *http.Request) {

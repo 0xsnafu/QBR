@@ -1,35 +1,43 @@
 import React, { useState } from 'react';
 import { Link } from "react-router-dom";
 
-// import SignInModal from './modals/SignInModal'
+import { useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { logoutUser } from '../redux/user';
+
+import SignInModal from './modals/SignInModal'
+import SignUpModal from './modals/SignUpModal';
 
 const NavBar = () => {
+    const { user } = useSelector(state => state.user);
+    const dispatch = useDispatch();
+
     const [navbarOpen, setNavbarOpen] = useState(false);
-    // const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+    const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+    const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
 
-    // const SignOut = () => {
-    //     localStorage.removeItem('token')
-    //     window.location.reload()
-    // }
+    const authLinks = (
+        <>
+            <p>{user.username ? user.username : user.email}</p>
+            <li className="nav-item">
+                <a className="px-3 py-2 flex items-center font-bold text-green-500 hover:opacity-75" href='/my-profile'>My Profile</a>
+            </li>
+            <li className="nav-item">
+                <button className="px-3 py-2 flex items-center font-bold text-green-500 hover:opacity-75" onClick={() => dispatch(logoutUser({}))}>Sign Out</button>
+            </li>
+        </>
+    )
 
-    // const authLinks = (
-    //     <>
-    //         <li className="nav-item">
-    //             <a className="px-3 py-2 flex items-center font-bold text-green-500 hover:opacity-75" href='/my-profile'>My Profile</a>
-    //         </li>
-    //         <li className="nav-item">
-    //             <button className="px-3 py-2 flex items-center font-bold text-green-500 hover:opacity-75" onClick={() => SignOut()}>Sign Out</button>
-    //         </li>
-    //     </>
-    // )
-
-    // const guestLinks = (
-    //     <li className="nav-item text-right">
-    //         <a className="py-2 flex items-center font-bold text-green-500 hover:opacity-75" href="#" onClick={() => setIsSignInModalOpen(!isSignInModalOpen)}>Sign In/Up</a>
-    //     </li>
-    // )
-
-    // const CloseModal = () => { setIsSignInModalOpen(false) }
+    const guestLinks = (
+        <>
+            <li>
+                <button className="px-3 py-2 flex items-center font-bold text-green-500 hover:opacity-75" onClick={() => setIsSignInModalOpen(!isSignInModalOpen)}>Sign In</button>
+            </li>
+            <li>
+                <button className="px-3 py-2 flex items-center bg-green-500 rounded font-bold text-white hover:opacity-75" onClick={() => setIsSignUpModalOpen(!isSignUpModalOpen)}>Sign Up</button>
+            </li>
+        </>
+    )
 
     return (
         <>
@@ -48,19 +56,22 @@ const NavBar = () => {
                                 </svg>
                             </button>
                         </div>
-                        <div className={"lg:flex flex-grow items-center" + (navbarOpen ? " flex" : " hidden")} id="example-navbar-danger" >
+                        <div className={"lg:flex flex-grow items-center " + (navbarOpen ? "flex" : "hidden")} >
                             <ul className="flex flex-col content-center lg:flex-row list-none lg:ml-auto w-full items-center">
-                                <Link to={'/about'} data-tip='About' className='nav-item text-right md:ml-auto' onClick={() => setNavbarOpen(false)}>
-                                    <span className='px-3 py-2 flex items-center font-bold text-green-500 hover:opacity-75 mr-3'>About</span>
-                                </Link>
-                                {/* {localStorage.token ? authLinks : guestLinks} */}
+                                <li className='ml-0 md:ml-auto'>
+                                    <Link to={'/about'} data-tip='About' className='px-3 py-2 flex items-center font-bold text-green-500 hover:opacity-75' onClick={() => setNavbarOpen(false)}>
+                                        About
+                                    </Link>
+                                </li>
+                                {user.email ? authLinks : guestLinks}
                             </ul>
                         </div>
                     </div>
                 </nav>
             </div>
 
-            {/* <SignInModal isSignInModalOpen={isSignInModalOpen} CloseModal={() => CloseModal()} /> */}
+            <SignInModal isSignInModalOpen={isSignInModalOpen} CloseModal={() => setIsSignInModalOpen(false)} />
+            <SignUpModal isSignUpModalOpen={isSignUpModalOpen} CloseModal={() => setIsSignUpModalOpen(false)} />
         </>
     )
 }

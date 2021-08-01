@@ -20,7 +20,6 @@ const Landing = () => {
 
         fetch(`/search?roomID=${roomID}`)
             .then(res => {
-                console.log(res.status)
                 if (res.status === 200) { //Room found
                     //Show SUCCESS flash message
                     dispatch(setInParty(true));

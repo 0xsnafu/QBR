@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Route } from "react-router-dom";
+import jwt_decode from "jwt-decode";
 
 import './index.css';
 import './App.css';
@@ -9,13 +10,31 @@ import Navbar from "./components/Navbar";
 import About from "./components/About";
 import Game from "./components/Game";
 
+import { useDispatch } from 'react-redux';
+import { setUser, logoutUser } from './redux/user';
+
 const App = () => {
+  const dispatch = useDispatch();
+
   useEffect(() => {
     //If in .herokuapp url OR in http url, redirect to live url. Doesn't redirect in localhost
     if ((window.location.hostname.includes('herokuapp') || window.location.protocol.includes('http:')) && !window.location.hostname.includes('localhost')) {
       window.location.replace("https://quickbrainracers.com");
     }
-  }, [])
+
+    //Check for token
+    if (localStorage.jwt) {
+      const decoded = jwt_decode(localStorage.jwt);
+      dispatch(setUser(decoded));
+
+      //Check for expired token
+      const currentTime = Date.now() / 1000;
+      if (decoded.exp < currentTime) {
+        dispatch(logoutUser());
+      }
+    }
+
+  }, [dispatch])
 
   return (
     <Router>

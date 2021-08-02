@@ -22,8 +22,11 @@ func routes() http.Handler {
 
 	mux.Use(c.Handler)
 
-	mux.Get("/user", func(w http.ResponseWriter, r *http.Request) {
-		handlers.User(w, r)
+	mux.Get("/getuser", func(w http.ResponseWriter, r *http.Request) {
+		handlers.GetUser(w, r)
+	})
+	mux.Post("/setusername", func(w http.ResponseWriter, r *http.Request) {
+		handlers.SetUsername(w, r)
 	})
 	mux.Post("/logout", func(w http.ResponseWriter, r *http.Request) {
 		handlers.Logout(w, r)

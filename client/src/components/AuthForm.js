@@ -6,6 +6,7 @@ import jwt_decode from "jwt-decode";
 import { useDispatch } from 'react-redux';
 import { setUser } from '../redux/user';
 import Spinner from './Spinner';
+import ErrorMsg from './ErrorMsg';
 
 const AuthForm = ({ buttonText }) => {
     const [email, setEmail] = useState("");
@@ -52,12 +53,7 @@ const AuthForm = ({ buttonText }) => {
                 }
             })
             .catch(err => {
-                if (err.response.status === 409) {
-                    setErrorMsg(err.response.data);
-                } else if (err.response.data.Errors) {
-                    setErrorMsg(err.response.data.Errors.password[0]);
-                }
-
+                setErrorMsg(err.response.data);
                 setIsProcessing(false);
             })
     }
@@ -85,8 +81,7 @@ const AuthForm = ({ buttonText }) => {
                     <input type='password' name='password' className='mt-1 block w-full rounded-md bg-gray-200 border-transparent p-2'
                         value={password} onChange={e => setPassword(e.target.value)} required />
                 </label>
-
-                <p className='text-red-500 font-bold'>{errorMsg}</p>
+                <ErrorMsg errorMsg={errorMsg} />
             </div>
 
             <button className='bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded text-md block mx-auto w-1/4' disabled={isProcessing ? true : false}>

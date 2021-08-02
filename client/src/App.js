@@ -12,6 +12,7 @@ import Game from "./components/Game";
 
 import { useDispatch } from 'react-redux';
 import { setUser, logoutUser } from './redux/user';
+import MyProfile from "./components/MyProfile";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -48,6 +49,7 @@ const App = () => {
         <Route exact path='/' component={Landing} />
         <Route exact path='/about' component={About} />
         <Route exact path='/play' component={Game} />
+        <Route exact path='/my-profile' component={MyProfile} />
 
       </div>
     </Router>

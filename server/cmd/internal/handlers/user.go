@@ -38,8 +38,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	form.IsEmail("email")
 
 	if !form.Valid() {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(form)
+		Respond(w, http.StatusBadRequest, "Password be at least 3 characters")
 		return
 	}
 
@@ -56,8 +55,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		if pgError := results.Error.(*pgconn.PgError); errors.Is(results.Error, pgError) {
 			switch pgError.Code {
 			case "23505":
-				w.WriteHeader(http.StatusConflict)
-				json.NewEncoder(w).Encode("Email already exists")
+				Respond(w, http.StatusConflict, "Email already exists")
 				return
 			}
 		}
@@ -79,8 +77,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	form.IsEmail("email")
 
 	if !form.Valid() {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(form)
+		Respond(w, http.StatusBadRequest, "Email or password are incorrect")
 		return
 	}
 
@@ -90,14 +87,12 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	database.DB.Where("email = ?", email).First(&user)
 
 	if user.Id == 0 {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode("Email not found")
+		Respond(w, http.StatusNotFound, "Email not found")
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(password)); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("Incorrect password")
+		Respond(w, http.StatusBadRequest, "Incorrect password")
 		return
 	}
 
@@ -113,8 +108,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	token, err := claims.SignedString([]byte(config.App.SecretKey))
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode("Could not log in")
+		Respond(w, http.StatusInternalServerError, "Could not log in")
 		return
 	}
 
@@ -130,7 +124,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func User(w http.ResponseWriter, r *http.Request) {
+func IsAuthenticated(w http.ResponseWriter, r *http.Request) string {
 	cookie, _ := r.Cookie("jwt")
 
 	token, err := jwt.ParseWithClaims(cookie.Value, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -138,9 +132,8 @@ func User(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode("Unauthenticated")
-
+		Respond(w, http.StatusUnauthorized, "Unauthenticated")
+		return ""
 	}
 
 	claims := token.Claims.(*jwt.StandardClaims)
@@ -149,7 +142,7 @@ func User(w http.ResponseWriter, r *http.Request) {
 
 	database.DB.Where("id = ?", claims.Issuer).First(&user)
 
-	json.NewEncoder(w).Encode(user)
+	return user.Email
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {
@@ -162,6 +155,62 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, cookie)
+	Respond(w, http.StatusOK, "Logged out!")
+}
+
+func SetUsername(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		log.Println(err)
+	}
+
+	username := r.Form.Get("username")
+
+	form := forms.New(r.PostForm)
+	form.MinLength("username", 3)
+
+	if !form.Valid() {
+		Respond(w, http.StatusBadRequest, "Username must be at least 3 characters")
+		return
+	}
+
+	email := IsAuthenticated(w, r)
+
+	if email == "" {
+		Respond(w, http.StatusUnauthorized, "You need to be signed in!")
+		return
+	}
+
+	var user models.User
+
+	if results := database.DB.Model(&user).Where("email = ?", email).Update("username", username); results.Error != nil {
+		if pgError := results.Error.(*pgconn.PgError); errors.Is(results.Error, pgError) {
+			switch pgError.Code {
+			case "23505": //Error 23505 - record already exists in DB
+				Respond(w, http.StatusConflict, "Username already exists")
+				return
+			}
+		}
+	}
+
+	Respond(w, http.StatusOK, "Username set!")
+}
+
+func GetUser(w http.ResponseWriter, r *http.Request) {
+	email := IsAuthenticated(w, r)
+
+	if email == "" {
+		Respond(w, http.StatusUnauthorized, "You need to be signed in!")
+		return
+	}
+
+	var user models.User
+	database.DB.Where("email = ?", email).First(&user)
+
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode("Logged out!")
+	json.NewEncoder(w).Encode(user)
+}
+
+func Respond(w http.ResponseWriter, status int, msg string) {
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(msg)
 }

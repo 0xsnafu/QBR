@@ -18,7 +18,7 @@ const NavBar = () => {
 
     const authLinks = (
         <>
-            <p>{user.username ? user.username : user.email}</p>
+            <p>{user.username ? user.username : "Newbie"}</p>
             <li className="nav-item">
                 <a className="px-3 py-2 flex items-center font-bold text-green-500 hover:opacity-75" href='/my-profile'>My Profile</a>
             </li>

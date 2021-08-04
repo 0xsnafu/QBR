@@ -68,6 +68,7 @@ const Game = () => {
 
         socket.onmessage = (data) => {
             let msg = JSON.parse(data.data);
+            let message;
 
             switch (msg.status) {
                 case 0: //Receiving countdown
@@ -77,7 +78,7 @@ const Game = () => {
                     break;
                 case 1: //Server says start match
                     //Get Question
-                    let message = { status: 5 }
+                    message = { status: 5 }
                     socket.send(JSON.stringify(message));
                     break;
                 case 2: //Getting user list        
@@ -86,6 +87,13 @@ const Game = () => {
                     break;
                 case 3: //Getting my ID
                     dispatch(setMyID(msg.body[0]));
+
+                    //Send JWT
+                    if (localStorage.jwt) {
+                        message = { status: 20, body: [localStorage.jwt] }
+                        socket.send(JSON.stringify(message));
+                    }
+
                     break;
                 case 4: //Server is searching for players...
                     dispatch(setStatus(4));
@@ -96,6 +104,7 @@ const Game = () => {
                     break;
                 case 8: //Receiving Rankings
                     dispatch(setRankings(msg.body));
+
                     break;
                 case 10: //Receive Room ID
                     dispatch(setRoomID(msg.body[0]));

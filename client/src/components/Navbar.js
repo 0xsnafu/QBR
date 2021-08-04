@@ -18,10 +18,10 @@ const NavBar = () => {
 
     const authLinks = (
         <>
-            <p>{user.username ? user.username : "Newbie"}</p>
-            <li className="nav-item">
-                <a className="px-3 py-2 flex items-center font-bold text-green-500 hover:opacity-75" href='/my-profile'>My Profile</a>
-            </li>
+            <p>{user && user.username ? user.username : "Newbie"}</p>
+            <Link to={'/my-profile'} data-tip='My Profile' className='px-3 py-2 flex items-center font-bold text-green-500 hover:opacity-75' >
+                My Profile
+            </Link>
             <li className="nav-item">
                 <button className="px-3 py-2 flex items-center font-bold text-green-500 hover:opacity-75" onClick={() => dispatch(logoutUser({}))}>Sign Out</button>
             </li>
@@ -63,7 +63,7 @@ const NavBar = () => {
                                         About
                                     </Link>
                                 </li>
-                                {user.email ? authLinks : guestLinks}
+                                {user && user.email ? authLinks : guestLinks}
                             </ul>
                         </div>
                     </div>

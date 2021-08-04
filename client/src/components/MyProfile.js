@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import ReactGA from 'react-ga';
 
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { updateUser } from '../redux/user'
 import { Redirect } from 'react-router-dom';
 import SetUsername from './SetUsername';
 import Spinner from './Spinner';
@@ -12,8 +13,9 @@ if (process.env.NODE_ENV !== 'development') {
 }
 
 const MyProfile = () => {
-    const { user } = useSelector(state => state.user);
     const [isLoading, setIsLoading] = useState(true);
+    const { user } = useSelector(state => state.user);
+    const dispatch = useDispatch();
 
     useEffect(() => {
         if (!localStorage.jwt) {
@@ -21,6 +23,7 @@ const MyProfile = () => {
             return
         }
 
+        dispatch(updateUser());
         setIsLoading(false);
     }, [])
 
@@ -34,6 +37,8 @@ const MyProfile = () => {
                         <h1 className='font-bold text-lg'>Profile</h1>
                         <hr />
                         <h1>{user.email ? user.email + " 's profile" : <Redirect to='/' />}</h1>
+                        <p className='text-blue-500'><span className='text-black font-bold'>Games Played: </span>{user.gamesPlayed}</p>
+                        <p className='text-blue-500'><span className='text-black font-bold'>Games Won: </span>{user.gamesWon}</p>
                         <SetUsername />
                     </div>
                 </div>

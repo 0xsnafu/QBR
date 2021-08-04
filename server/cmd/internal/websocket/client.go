@@ -9,6 +9,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/MartyMav/QBRServer/cmd/internal/handlers"
+
+	"github.com/MartyMav/QBRServer/cmd/internal/config"
+	"github.com/MartyMav/QBRServer/cmd/internal/database"
+	"github.com/MartyMav/QBRServer/cmd/internal/models"
+	"github.com/golang-jwt/jwt"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -32,6 +39,7 @@ type Client struct {
 	MaximumDelay        int
 	AnswerDelay         int
 	AnswerDelayProgress int
+	JWTToken            string
 	Conn                *websocket.Conn
 	Room                *Room
 	Send                chan []byte
@@ -117,9 +125,6 @@ func (client *Client) JoinRoom(roomID string) {
 
 	//Connect to new room
 	room.Register <- client
-
-	// fmt.Println("Client " + client.ID + " in room: " + room.ID)
-
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -141,12 +146,9 @@ func (c *Client) readPump() {
 			}
 			break
 		}
-		// fmt.Println("READING....")
-		// fmt.Println(string(p))
 
 		var message Message
 		json.Unmarshal([]byte(string(p)), &message)
-		// fmt.Println(message)
 
 		switch message.Status {
 		case 5: //Get Question
@@ -181,6 +183,31 @@ func (c *Client) readPump() {
 					c.Room.Rankings = append(c.Room.Rankings, c.ID)
 
 					c.Room.Broadcast <- c.Room.GenerateMessage(8, c.Room.Rankings)
+					//////////////////// AUTH STUFF //////////////////////////
+
+					token, err := jwt.ParseWithClaims(c.JWTToken, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
+						return []byte(config.App.SecretKey), nil
+					})
+
+					if err != nil {
+						fmt.Println(err)
+					}
+
+					claims := token.Claims.(*jwt.StandardClaims)
+
+					var user models.User
+					database.DB.Where("id = ?", claims.Issuer).First(&user)
+
+					//If there is a JWT, save results to DB for player
+					if len(c.JWTToken) > 0 {
+						var isWinner bool
+						if c.Room.Rankings[0] == c.ID {
+							isWinner = true
+						}
+						handlers.SaveMatchResults(isWinner, user.Email)
+					}
+
+					//////////////////// END AUTH STUFF //////////////////////////
 
 				} else if c.QuestionIndex < len(c.Room.QuestionBank) { //Still questions left...
 
@@ -224,6 +251,8 @@ func (c *Client) readPump() {
 			if c.IsHost {
 				go c.Room.StartPreGame()
 			}
+		case 20: //Receiving JWT
+			c.JWTToken = message.Body[0]
 		}
 	}
 }

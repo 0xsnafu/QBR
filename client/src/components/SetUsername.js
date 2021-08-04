@@ -22,7 +22,7 @@ const SetUsername = () => {
     const [errorMsg, setErrorMsg] = useState('');
 
     const Submit = (e) => {
-        if (user.username) { return; }
+        // if (user.username) { return; }
 
         e.preventDefault();
         setIsProcessing(true);
@@ -46,9 +46,11 @@ const SetUsername = () => {
                 <input className='mt-1 block w-full rounded-md bg-gray-200 border-transparent p-2' value={username} onChange={e => setUsername(e.target.value)} />
                 <ErrorMsg errorMsg={errorMsg} />
 
-                {!user.username && (<button className='bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded text-md block mx-auto w-1/4' disabled={isProcessing ? true : false}>
-                    {isProcessing ? <Spinner /> : "Set"}
-                </button>)}
+                {!user.username && (
+                    <button className='bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded text-md block mx-auto w-1/4' disabled={isProcessing ? true : false}>
+                        {isProcessing ? <Spinner /> : "Set"}
+                    </button>
+                )}
 
             </form>
         </div>

@@ -10,7 +10,7 @@ const SignUpModal = ({ isSignUpModalOpen, CloseModal }) => {
     const [isOpen, setIsOpen] = useState(isSignUpModalOpen);
 
     useEffect(() => {
-        if (user.email) { CloseModal() } //If there is an email in redux(logged in), close modal
+        if (user && user.email) { CloseModal() } //If there is an email in redux(logged in), close modal
         if (isOpen !== isSignUpModalOpen) {
             setIsOpen(isSignUpModalOpen)
             setIsHidden(!isSignUpModalOpen)

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/MartyMav/QBRServer/cmd/internal/forms"
@@ -13,19 +12,12 @@ import (
 
 	"github.com/golang-jwt/jwt"
 
-	"github.com/MartyMav/QBRServer/cmd/internal/config"
 	"github.com/MartyMav/QBRServer/cmd/internal/database"
 
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/MartyMav/QBRServer/cmd/internal/models"
 )
-
-type CustomClaims struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	jwt.StandardClaims
-}
 
 func Register(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
@@ -96,41 +88,20 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	customClaims := CustomClaims{
-		user.Email,
-		user.Username,
-		jwt.StandardClaims{
-			Issuer:    strconv.Itoa(int(user.Id)),
-			ExpiresAt: expiryDate.Unix(),
-		},
-	}
-	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, customClaims)
-
-	token, err := claims.SignedString([]byte(config.App.SecretKey))
+	token, err := GenerateToken(user, expiryDate)
 	if err != nil {
 		Respond(w, http.StatusInternalServerError, "Could not log in")
 		return
 	}
 
-	cookie := &http.Cookie{
-		Name:     "jwt",
-		Value:    token,
-		Expires:  expiryDate,
-		HttpOnly: false,
-		Secure:   config.App.InProduction,
-	}
-
-	http.SetCookie(w, cookie)
+	http.SetCookie(w, NewCookie(token, expiryDate))
 	w.WriteHeader(http.StatusOK)
 }
 
 func IsAuthenticated(w http.ResponseWriter, r *http.Request) string {
 	cookie, _ := r.Cookie("jwt")
 
-	token, err := jwt.ParseWithClaims(cookie.Value, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(config.App.SecretKey), nil
-	})
-
+	token, err := ParseToken(cookie.Value)
 	if err != nil {
 		Respond(w, http.StatusUnauthorized, "Unauthenticated")
 		return ""
@@ -146,15 +117,7 @@ func IsAuthenticated(w http.ResponseWriter, r *http.Request) string {
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {
-	cookie := &http.Cookie{
-		Name:     "jwt",
-		Value:    "",
-		Expires:  time.Now().Add(-time.Hour),
-		HttpOnly: true,
-		Secure:   config.App.InProduction,
-	}
-
-	http.SetCookie(w, cookie)
+	http.SetCookie(w, NewCookie("", time.Now().Add(-time.Hour)))
 	Respond(w, http.StatusOK, "Logged out!")
 }
 
@@ -203,8 +166,27 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//Get ExpiresAt from old JWT
+	oldCookie, _ := r.Cookie("jwt")
+	oldToken, err := ParseToken(oldCookie.Value)
+	if err != nil {
+		Respond(w, http.StatusUnauthorized, "Unauthenticated")
+		return
+	}
+
+	oldClaims := oldToken.Claims.(*jwt.StandardClaims)
+
 	var user models.User
 	database.DB.Where("email = ?", email).First(&user)
+
+	//Create new token with updated data
+	token, err := GenerateToken(user, time.Unix(oldClaims.ExpiresAt, 0))
+	if err != nil {
+		Respond(w, http.StatusInternalServerError, "Could not log in")
+		return
+	}
+
+	http.SetCookie(w, NewCookie(token, time.Unix(oldClaims.ExpiresAt, 0)))
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)

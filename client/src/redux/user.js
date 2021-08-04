@@ -32,9 +32,12 @@ export const userSlice = createSlice({
         }
     },
     extraReducers: (builder) => {
-        // Add reducers for additional action types here, and handle loading state as needed
         builder.addCase(updateUser.fulfilled, (state, { payload }) => {
-            state.user = payload
+            state.user.username = payload.username
+            state.user.gamesPlayed = payload.gamesPlayed
+            state.user.gamesWon = payload.gamesWon
+
+            localStorage.setItem('jwt', document.cookie.match("(^|;)\\s*jwt\\s*=\\s*([^;]+)")?.pop() || "");
         })
     },
 })

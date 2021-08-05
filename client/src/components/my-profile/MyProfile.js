@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import ReactGA from 'react-ga';
 
 import { useSelector, useDispatch } from 'react-redux';
-import { updateUser } from '../redux/user'
+import { updateUser } from '../../redux/user'
 import { Redirect } from 'react-router-dom';
 import SetUsername from './SetUsername';
-import Spinner from './Spinner';
+import Spinner from '../Spinner';
 
 if (process.env.NODE_ENV !== 'development') {
     ReactGA.initialize('UA-103417969-4');
@@ -25,15 +25,15 @@ const MyProfile = () => {
 
         dispatch(updateUser());
         setIsLoading(false);
-    }, [])
+    }, [dispatch])
 
     return (
         <>
             {isLoading
                 ? <Spinner />
                 :
-                <div className="grid grid-cols-12 gap-4">
-                    <div className='col-start-2 col-span-10 md:col-start-3 md:col-span-8 border-2 border-green-500 rounded p-8'>
+                <div className="grid grid-cols-12 gap-2">
+                    <div className='col-start-2 col-span-10 md:col-start-5 md:col-span-4 p-2 md:p-8'>
                         <h1 className='font-bold text-lg'>Profile</h1>
                         <hr />
                         <h1>{user.email ? user.email + " 's profile" : <Redirect to='/' />}</h1>

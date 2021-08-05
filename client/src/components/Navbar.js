@@ -19,11 +19,11 @@ const NavBar = () => {
     const authLinks = (
         <>
             <p>{user && user.username ? user.username : "Newbie"}</p>
-            <Link to={'/my-profile'} data-tip='My Profile' className='px-3 py-2 flex items-center font-bold text-green-500 hover:opacity-75' >
+            <Link to={'/my-profile'} data-tip='My Profile' className='qbr-nav-link font-bold' >
                 My Profile
             </Link>
             <li className="nav-item">
-                <button className="px-3 py-2 flex items-center font-bold text-green-500 hover:opacity-75" onClick={() => dispatch(logoutUser({}))}>Sign Out</button>
+                <button className="qbr-nav-link" onClick={() => dispatch(logoutUser({}))}>Sign Out</button>
             </li>
         </>
     )
@@ -31,10 +31,10 @@ const NavBar = () => {
     const guestLinks = (
         <>
             <li>
-                <button className="px-3 py-2 flex items-center font-bold text-green-500 hover:opacity-75" onClick={() => setIsSignInModalOpen(!isSignInModalOpen)}>Sign In</button>
+                <button className="qbr-nav-link" onClick={() => setIsSignInModalOpen(!isSignInModalOpen)}>Sign In</button>
             </li>
             <li>
-                <button className="px-3 py-2 flex items-center bg-green-500 rounded font-bold text-white hover:opacity-75" onClick={() => setIsSignUpModalOpen(!isSignUpModalOpen)}>Sign Up</button>
+                <button className="qbr-nav-link bg-green-500 text-white" onClick={() => setIsSignUpModalOpen(!isSignUpModalOpen)}>Sign Up</button>
             </li>
         </>
     )
@@ -48,7 +48,7 @@ const NavBar = () => {
                             <Link to={'/'} data-tip='Home' className='text-2xl font-bold inline-block text-green-500' onClick={() => setNavbarOpen(false)}>
                                 <img className='w-2/5' src='/qbr-logo.png' alt='QBR Logo' />
                             </Link>
-                            <button className="text-white cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded bg-transparent block lg:hidden outline-none focus:outline-none"
+                            <button className="text-xl leading-none px-3 py-1 border border-solid border-transparent bg-transparent block lg:hidden outline-none focus:outline-none"
                                 type="button" onClick={() => setNavbarOpen(!navbarOpen)} aria-label='Open the dropdown'>
 
                                 <svg className='h-7 w-7 text-green-500' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden='true'>

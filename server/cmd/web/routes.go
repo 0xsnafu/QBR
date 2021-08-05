@@ -15,9 +15,7 @@ func routes() http.Handler {
 	mux := chi.NewRouter()
 
 	c := cors.New(cors.Options{
-		// AllowedOrigins:   []string{"http://foo.com", "http://foo.com:8080"},
 		AllowCredentials: true,
-		// Debug:            !config.App.InProduction,
 	})
 
 	mux.Use(c.Handler)

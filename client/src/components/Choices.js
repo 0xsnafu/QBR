@@ -28,7 +28,7 @@ const Choices = ({ socket }) => {
 
     return (
         question.choices !== undefined && question.choices.map((choice, index) => {
-            return <button key={index} className={`${index === 0 && ('md:col-start-2')} mx-auto font-bold rounded-full h-24 w-24 m-3 text-2xl
+            return <button key={index} className={`${index === 0 && ('md:col-start-2')} mx-auto text-black rounded-full h-24 w-24 m-3 text-2xl
                 ${isIncorrect ? 'border-white bg-red-600 text-white' : 'border-2 border-black'}`}
                 disabled={isIncorrect} onClick={() => CheckAnswer(choice)}>{choice}</button>
         })

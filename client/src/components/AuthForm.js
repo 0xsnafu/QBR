@@ -69,22 +69,22 @@ const AuthForm = ({ buttonText }) => {
         <form onSubmit={Submit}>
             <div className='py-2'>
 
-                <label className='block mb-3'>
+                <label className='mb-3'>
                     <span className='text-gray-700 font-bold'>Email</span>
-                    <input type='email' name='email' className='mt-1 block w-full rounded-md bg-gray-200 border-transparent p-2'
+                    <input type='email' name='email' className='block w-full'
                         value={email} onChange={e => setEmail(e.target.value)} required />
                 </label>
 
-                <label className='block relative'>
+                <label className='relative'>
                     <span className='text-gray-700 font-bold'>Password</span>
                     {buttonText === 'Sign In' && (<p className='text-blue-500 underline cursor-pointer absolute top-0 right-0' >Forgot Password?</p>)}
-                    <input type='password' name='password' className='mt-1 block w-full rounded-md bg-gray-200 border-transparent p-2'
+                    <input type='password' name='password' className='w-full'
                         value={password} onChange={e => setPassword(e.target.value)} required />
                 </label>
                 <ErrorMsg errorMsg={errorMsg} />
             </div>
 
-            <button className='bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded text-md block mx-auto w-1/4' disabled={isProcessing ? true : false}>
+            <button className='bg-green-500 hover:bg-green-700 block mx-auto w-1/4' disabled={isProcessing ? true : false}>
                 {isProcessing ? <Spinner /> : buttonText}
             </button>
         </form>

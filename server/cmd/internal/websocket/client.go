@@ -11,7 +11,6 @@ import (
 
 	"github.com/MartyMav/QBRServer/cmd/internal/handlers"
 
-	"github.com/MartyMav/QBRServer/cmd/internal/config"
 	"github.com/MartyMav/QBRServer/cmd/internal/database"
 	"github.com/MartyMav/QBRServer/cmd/internal/models"
 	"github.com/golang-jwt/jwt"
@@ -183,14 +182,16 @@ func (c *Client) readPump() {
 					c.Room.Rankings = append(c.Room.Rankings, c.ID)
 
 					c.Room.Broadcast <- c.Room.GenerateMessage(8, c.Room.Rankings)
-					//////////////////// AUTH STUFF //////////////////////////
 
-					token, err := jwt.ParseWithClaims(c.JWTToken, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
-						return []byte(config.App.SecretKey), nil
-					})
+					//Only proceeds if there is a token(logged in)
+					if len(c.JWTToken) == 0 {
+						continue
+					}
 
+					token, err := handlers.ParseToken(c.JWTToken)
 					if err != nil {
 						fmt.Println(err)
+						return
 					}
 
 					claims := token.Claims.(*jwt.StandardClaims)
@@ -206,8 +207,6 @@ func (c *Client) readPump() {
 						}
 						handlers.SaveMatchResults(isWinner, user.Email)
 					}
-
-					//////////////////// END AUTH STUFF //////////////////////////
 
 				} else if c.QuestionIndex < len(c.Room.QuestionBank) { //Still questions left...
 

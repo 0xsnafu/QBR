@@ -2,8 +2,9 @@ import React, { useEffect } from "react";
 import { BrowserRouter as Router, Route } from "react-router-dom";
 import jwt_decode from "jwt-decode";
 
-import './index.css';
-import './App.css';
+import './styles/tailwindcomponents.css';
+import './styles/index.css';
+import './styles/App.css';
 
 import Landing from "./components/Landing";
 import Navbar from "./components/Navbar";
@@ -12,7 +13,7 @@ import Game from "./components/Game";
 
 import { useDispatch } from 'react-redux';
 import { setUser, logoutUser } from './redux/user';
-import MyProfile from "./components/MyProfile";
+import MyProfile from "./components/my-profile/MyProfile";
 
 const App = () => {
   const dispatch = useDispatch();

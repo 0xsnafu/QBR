@@ -145,6 +145,13 @@ func SetUsername(w http.ResponseWriter, r *http.Request) {
 
 	var user models.User
 
+	//Check if user already has username
+	database.DB.Where("email = ?", email).First(&user)
+	if len(user.Username) > 0 {
+		Respond(w, http.StatusBadRequest, "You already have a username!")
+		return
+	}
+
 	if results := database.DB.Model(&user).Where("email = ?", email).Update("username", username); results.Error != nil {
 		if pgError := results.Error.(*pgconn.PgError); errors.Is(results.Error, pgError) {
 			switch pgError.Code {

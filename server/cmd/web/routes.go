@@ -20,6 +20,9 @@ func routes() http.Handler {
 
 	mux.Use(c.Handler)
 
+	mux.Post("/updatepassword", func(w http.ResponseWriter, r *http.Request) {
+		handlers.UpdatePassword(w, r)
+	})
 	mux.Get("/getuser", func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetUser(w, r)
 	})

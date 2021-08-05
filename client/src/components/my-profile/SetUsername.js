@@ -22,7 +22,6 @@ const SetUsername = () => {
     const [errorMsg, setErrorMsg] = useState('');
 
     const Submit = (e) => {
-        // if (user.username) { return; }
 
         e.preventDefault();
         setIsProcessing(true);

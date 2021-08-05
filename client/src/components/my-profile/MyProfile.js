@@ -3,9 +3,9 @@ import ReactGA from 'react-ga';
 
 import { useSelector, useDispatch } from 'react-redux';
 import { updateUser } from '../../redux/user'
-import { Redirect } from 'react-router-dom';
 import SetUsername from './SetUsername';
 import Spinner from '../Spinner';
+import UpdatePassword from './UpdatePassword';
 
 if (process.env.NODE_ENV !== 'development') {
     ReactGA.initialize('UA-103417969-4');
@@ -25,7 +25,7 @@ const MyProfile = () => {
 
         dispatch(updateUser());
         setIsLoading(false);
-    }, [dispatch])
+    }, [dispatch, user])
 
     return (
         <>
@@ -33,13 +33,20 @@ const MyProfile = () => {
                 ? <Spinner />
                 :
                 <div className="grid grid-cols-12 gap-2">
-                    <div className='col-start-2 col-span-10 md:col-start-5 md:col-span-4 p-2 md:p-8'>
+                    <div className='col-start-2 col-span-10 md:col-start-5 md:col-span-4 p-2 md:p-8 '>
                         <h1 className='font-bold text-lg'>Profile</h1>
                         <hr />
-                        <h1>{user.email ? user.email + " 's profile" : <Redirect to='/' />}</h1>
-                        <p className='text-blue-500'><span className='text-black font-bold'>Games Played: </span>{user.gamesPlayed}</p>
-                        <p className='text-blue-500'><span className='text-black font-bold'>Games Won: </span>{user.gamesWon}</p>
-                        <SetUsername />
+                        <div className='inline'>
+                            <p className='text-blue-500 inline mr-2'><span className='text-black font-bold'>Played: </span>{user.gamesPlayed}</p>
+                            <p className='text-blue-500 inline'><span className='text-black font-bold'>Won: </span>{user.gamesWon}</p>
+                        </div>
+                        <div className='mt-4'>
+                            <SetUsername />
+                        </div>
+
+                        <div className='mt-4'>
+                            <UpdatePassword />
+                        </div>
                     </div>
                 </div>
             }

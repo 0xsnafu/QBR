@@ -23,10 +23,11 @@ export const userSlice = createSlice({
         },
         logoutUser: (state, { payload }) => {
             state.user = payload;
+            localStorage.removeItem('jwt');
 
             axios.post('/logout')
                 .then(res => {
-                    localStorage.removeItem('jwt');
+                    // localStorage.removeItem('jwt');
                 })
                 .catch(err => console.log(err))
         }

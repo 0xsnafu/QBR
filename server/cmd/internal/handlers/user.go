@@ -165,6 +165,49 @@ func SetUsername(w http.ResponseWriter, r *http.Request) {
 	Respond(w, http.StatusOK, "Username set!")
 }
 
+func UpdatePassword(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		log.Println(err)
+	}
+
+	//Check form validity
+	oldPass := r.Form.Get("oldPass")
+	newPass := r.Form.Get("newPass")
+
+	form := forms.New(r.PostForm)
+	form.Required("oldPass", "newPass")
+	form.MinLength("newPass", 3)
+
+	if !form.Valid() {
+		Respond(w, http.StatusBadRequest, "Password be at least 3 characters")
+		return
+	}
+
+	//Check if logged in
+	email := IsAuthenticated(w, r)
+
+	if email == "" {
+		Respond(w, http.StatusUnauthorized, "You need to be signed in!")
+		return
+	}
+
+	var user models.User
+	database.DB.Where("email = ?", email).First(&user)
+
+	//Check if old password is correct
+	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(oldPass)); err != nil {
+		Respond(w, http.StatusBadRequest, "Incorrect password")
+		return
+	}
+
+	//Set new password
+	password, _ := bcrypt.GenerateFromPassword([]byte(newPass), 14)
+	user.Password = password
+	database.DB.Save(&user)
+
+	Respond(w, http.StatusOK, "Password successfully updated!")
+}
+
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	email := IsAuthenticated(w, r)
 

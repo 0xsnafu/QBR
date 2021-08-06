@@ -39,6 +39,7 @@ type Client struct {
 	AnswerDelay         int
 	AnswerDelayProgress int
 	JWTToken            string
+	DBID                uint
 	Conn                *websocket.Conn
 	Room                *Room
 	Send                chan []byte
@@ -81,7 +82,6 @@ func GetClientList(room *Room) []string {
 	clientList := make([]string, 0)
 
 	for client := range room.Clients {
-		// fmt.Println(client)
 		b, err := json.Marshal(struct {
 			ID          string `json:"id"`
 			Username    string `json:"username"`
@@ -102,7 +102,6 @@ func GetClientList(room *Room) []string {
 		clientList = append(clientList, string(b))
 	}
 
-	// fmt.Println("clientlist")
 	return clientList
 }
 
@@ -186,26 +185,13 @@ func (c *Client) readPump() {
 					//Only proceeds if there is a token(logged in)
 					if len(c.JWTToken) == 0 {
 						continue
-					}
-
-					token, err := handlers.ParseToken(c.JWTToken)
-					if err != nil {
-						fmt.Println(err)
-						return
-					}
-
-					claims := token.Claims.(*jwt.StandardClaims)
-
-					var user models.User
-					database.DB.Where("id = ?", claims.Issuer).First(&user)
-
-					//If there is a JWT, save results to DB for player
-					if len(c.JWTToken) > 0 {
+					} else {
+						//If there is a JWT, save results to DB for player
 						var isWinner bool
 						if c.Room.Rankings[0] == c.ID {
 							isWinner = true
 						}
-						handlers.SaveMatchResults(isWinner, user.Email)
+						handlers.SaveMatchResults(isWinner, c.DBID)
 					}
 
 				} else if c.QuestionIndex < len(c.Room.QuestionBank) { //Still questions left...
@@ -250,8 +236,6 @@ func (c *Client) readPump() {
 			if c.IsHost {
 				go c.Room.StartPreGame()
 			}
-		case 20: //Receiving JWT
-			c.JWTToken = message.Body[0]
 		}
 	}
 }
@@ -296,6 +280,24 @@ func ServeWs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := CreateNewUser(conn)
+
+	cookie, err := r.Cookie("jwt")
+	if err == nil { //No error; There was a cookie(logged in)
+		token, err := handlers.ParseToken(cookie.Value)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		claims := token.Claims.(*jwt.StandardClaims)
+
+		var user models.User
+		database.DB.Where("id = ?", claims.Issuer).First(&user)
+
+		client.Username = user.Username
+		client.JWTToken = cookie.Value
+		client.DBID = user.Id
+	}
 
 	params := r.URL.Query()
 

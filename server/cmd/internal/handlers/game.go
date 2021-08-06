@@ -5,10 +5,10 @@ import (
 	"github.com/MartyMav/QBRServer/cmd/internal/models"
 )
 
-func SaveMatchResults(isWinner bool, email string) {
+func SaveMatchResults(isWinner bool, id uint) {
 
 	var user models.User
-	database.DB.Where("email = ?", email).First(&user)
+	database.DB.Where("id = ?", id).First(&user)
 
 	user.GamesPlayed++
 

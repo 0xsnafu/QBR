@@ -87,13 +87,6 @@ const Game = () => {
                     break;
                 case 3: //Getting my ID
                     dispatch(setMyID(msg.body[0]));
-
-                    //Send JWT
-                    if (localStorage.jwt) {
-                        message = { status: 20, body: [localStorage.jwt] }
-                        socket.send(JSON.stringify(message));
-                    }
-
                     break;
                 case 4: //Server is searching for players...
                     dispatch(setStatus(4));

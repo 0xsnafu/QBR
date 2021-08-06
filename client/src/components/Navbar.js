@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
+import { addFlashMsg } from '../redux/flash';
 import { logoutUser } from '../redux/user';
 
 import SignInModal from './modals/SignInModal'
@@ -23,7 +24,7 @@ const NavBar = () => {
                 My Profile
             </Link>
             <li className="nav-item">
-                <button className="qbr-nav-link" onClick={() => dispatch(logoutUser({}))}>Sign Out</button>
+                <button className="qbr-nav-link" onClick={() => { dispatch(logoutUser({})); dispatch(addFlashMsg({ msg: "Logged out :(", type: 'success' })); }}>Sign Out</button>
             </li>
         </>
     )

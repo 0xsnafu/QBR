@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import querystring from 'query-string';
-import ReactGA from 'react-ga';
+
+import { useDispatch } from 'react-redux';
+import { addFlashMsg } from '../../redux/flash';
 
 import Spinner from './../Spinner';
 import ErrorMsg from './../ErrorMsg';
-
-if (process.env.NODE_ENV !== 'development') {
-    ReactGA.initialize('UA-103417969-4');
-    ReactGA.pageview('/my-profile');
-}
 
 const UpdatePassword = () => {
     const [oldPass, setOldPass] = useState("");
@@ -17,6 +14,8 @@ const UpdatePassword = () => {
     const [confirmPass, setConfirmPass] = useState("");
     const [isProcessing, setIsProcessing] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+
+    const dispatch = useDispatch();
 
     const Submit = (e) => {
         e.preventDefault();
@@ -34,7 +33,7 @@ const UpdatePassword = () => {
 
         axios.post('/updatepassword', querystring.stringify({ oldPass, newPass }), { headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, withCredentials: true })
             .then(res => {
-                //set success msg
+                dispatch(addFlashMsg({ msg: res.data, type: 'success' }))
                 setOldPass("");
                 setNewPass("");
                 setConfirmPass("");

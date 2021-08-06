@@ -4,7 +4,9 @@ import querystring from 'query-string';
 import jwt_decode from "jwt-decode";
 
 import { useDispatch } from 'react-redux';
+import { addFlashMsg } from './../redux/flash';
 import { setUser } from '../redux/user';
+
 import Spinner from './Spinner';
 import ErrorMsg from './ErrorMsg';
 
@@ -34,6 +36,7 @@ const AuthForm = ({ buttonText }) => {
                     localStorage.setItem('jwt', document.cookie.match("(^|;)\\s*jwt\\s*=\\s*([^;]+)")?.pop() || "");
                     const decoded = jwt_decode(localStorage.jwt);
                     dispatch(setUser(decoded));
+                    dispatch(addFlashMsg({ msg: "Welcome back!😎", type: 'success' }))
 
                     ResetState();
                 }
@@ -47,10 +50,9 @@ const AuthForm = ({ buttonText }) => {
     const SignUp = () => {
         axios.post('/register', querystring.stringify({ email, password }), { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
             .then(res => {
-                if (res.status === 200) {
-                    SignIn();
-                    ResetState();
-                }
+                SignIn();
+                dispatch(addFlashMsg({ msg: "Successfully signed up!", type: 'success' }))
+                ResetState();
             })
             .catch(err => {
                 setErrorMsg(err.response.data);

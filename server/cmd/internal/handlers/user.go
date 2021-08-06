@@ -9,6 +9,7 @@ import (
 
 	"github.com/MartyMav/QBRServer/cmd/internal/forms"
 	"github.com/jackc/pgconn"
+	"gorm.io/gorm"
 
 	"github.com/golang-jwt/jwt"
 
@@ -143,26 +144,24 @@ func SetUsername(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user models.User
+	result := map[string]interface{}{}
 
 	//Check if user already has username
-	database.DB.Where("email = ?", email).First(&user)
-	if len(user.Username) > 0 {
+	database.DB.Model(&models.User{}).Where("email = ?", email).First(&result)
+	if len(result["username"].(string)) > 0 {
 		Respond(w, http.StatusBadRequest, "You already have a username!")
 		return
 	}
 
-	if results := database.DB.Model(&user).Where("email = ?", email).Update("username", username); results.Error != nil {
-		if pgError := results.Error.(*pgconn.PgError); errors.Is(results.Error, pgError) {
-			switch pgError.Code {
-			case "23505": //Error 23505 - record already exists in DB
-				Respond(w, http.StatusConflict, "Username already exists")
-				return
-			}
-		}
+	//Check if username already exists
+	err := database.DB.Model(&models.User{}).Where("username = ?", username).First(&result)
+	if errors.Is(err.Error, gorm.ErrRecordNotFound) {
+		database.DB.Table("users").Where("email = ?", email).Update("username", username)
+		Respond(w, http.StatusOK, "Username set!")
+	} else {
+		Respond(w, http.StatusConflict, "Username already exists")
 	}
 
-	Respond(w, http.StatusOK, "Username set!")
 }
 
 func UpdatePassword(w http.ResponseWriter, r *http.Request) {

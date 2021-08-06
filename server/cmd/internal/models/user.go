@@ -1,5 +1,9 @@
 package models
 
+import (
+	"time"
+)
+
 type User struct {
 	Id          uint   `json:"id"`
 	Email       string `json:"email" gorm:"unique"`
@@ -7,4 +11,5 @@ type User struct {
 	Password    []byte `json:"-"`
 	GamesPlayed int    `json:"gamesPlayed"`
 	GamesWon    int    `json:"gamesWon"`
+	CreatedAt   time.Time
 }

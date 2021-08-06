@@ -34,6 +34,10 @@ const UpdatePassword = () => {
 
         axios.post('/updatepassword', querystring.stringify({ oldPass, newPass }), { headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, withCredentials: true })
             .then(res => {
+                //set success msg
+                setOldPass("");
+                setNewPass("");
+                setConfirmPass("");
                 setErrorMsg("");
                 setIsProcessing(false);
             })

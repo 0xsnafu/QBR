@@ -40,10 +40,10 @@ const SetUsername = () => {
     return (
         <div className='qbr-card'>
             <form onSubmit={Submit}>
-                <p className='font-bold ml-2'>Username</p>
+                <p className='font-bold'>Username</p>
 
                 <div className='flex justify-around'>
-                    <input className='w-8/12 inline-block disabled:opacity-50' disabled={user.username}
+                    <input className={`${user.username ? 'w-full' : 'w-8/12'} inline-block disabled:opacity-50 `} disabled={user.username}
                         value={username} onChange={e => setUsername(e.target.value)} />
                     {!user.username && (
                         <button className='bg-green-500 hover:bg-green-700 inline-block w-3/12' disabled={isProcessing ? true : false}>

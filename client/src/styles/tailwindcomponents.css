@@ -13,7 +13,7 @@
       @apply block
   }
   .qbr-card {
-      @apply border-2 border-green-500 rounded p-2
+      @apply border-2 border-green-500 rounded p-4
   }
   .qbr-modal-bg {
       @apply bg-gray-600 bg-opacity-50 w-screen h-screen p-4 z-10

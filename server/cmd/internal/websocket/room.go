@@ -129,7 +129,6 @@ func (room *Room) Start() {
 
 				//If last client disconnected, delete room. Else, update other clients
 				if len(room.Clients) == 0 || (len(room.Clients) > 0 && !room.CheckForClients()) {
-					fmt.Println("ROOM DELETED")
 					delete(Rooms, room)
 				} else {
 

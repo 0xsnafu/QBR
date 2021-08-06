@@ -294,7 +294,11 @@ func ServeWs(w http.ResponseWriter, r *http.Request) {
 		var user models.User
 		database.DB.Where("id = ?", claims.Issuer).First(&user)
 
-		client.Username = user.Username
+		//Will only use username if user actually set one
+		if len(user.Username) > 0 {
+			client.Username = user.Username
+		}
+
 		client.JWTToken = cookie.Value
 		client.DBID = user.Id
 	}

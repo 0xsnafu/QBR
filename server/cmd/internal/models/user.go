@@ -11,5 +11,16 @@ type User struct {
 	Password    []byte `json:"-"`
 	GamesPlayed int    `json:"gamesPlayed"`
 	GamesWon    int    `json:"gamesWon"`
+	IsVerified  bool   `json:"isVerified"`
+	Token       string
 	CreatedAt   time.Time
+}
+
+//Holds an email message
+type MailData struct {
+	To       string
+	From     string
+	Subject  string
+	Link     string
+	Template string
 }

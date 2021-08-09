@@ -18,7 +18,6 @@ func Connect() {
 	if err != nil {
 		panic("Could not connect to DB!")
 	}
-	//dont forget to close db connection with defer
 
 	DB = connection
 

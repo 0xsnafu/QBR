@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/MartyMav/QBRServer/cmd/internal/config"
 	"github.com/MartyMav/QBRServer/cmd/internal/forms"
+	"github.com/go-chi/chi"
 	"github.com/jackc/pgconn"
 	"gorm.io/gorm"
 
@@ -25,6 +27,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
+	//Verify form
 	form := forms.New(r.PostForm)
 	form.Required("email", "password")
 	form.MinLength("password", 3)
@@ -35,14 +38,21 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//Prepare User params
 	email := r.Form.Get("email")
 	password, _ := bcrypt.GenerateFromPassword([]byte(r.Form.Get("password")), 14)
+	token, err := GenerateToken(models.User{}, time.Now().Add(time.Hour*48)) //In 2 days
+	if err != nil {
+		return
+	}
 
 	user := models.User{
 		Email:    email,
 		Password: password,
+		Token:    token,
 	}
 
+	//Attempt to create user
 	if results := database.DB.Create(&user); results.Error != nil {
 		//Error 23505 - record already exists in DB
 		if pgError := results.Error.(*pgconn.PgError); errors.Is(results.Error, pgError) {
@@ -53,6 +63,16 @@ func Register(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+	//Send a verification email to user
+	msg := models.MailData{
+		To:       email,
+		From:     "quickbrainracers@gmail.com",
+		Subject:  "Verify your email",
+		Link:     "http://localhost:5000/verifyemail/" + token,
+		Template: "verify-email.html",
+	}
+	config.App.MailChan <- msg
 
 	w.WriteHeader(http.StatusOK)
 }
@@ -65,6 +85,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	email := r.Form.Get("email")
 	password := r.Form.Get("password")
 
+	//Verify form
 	form := forms.New(r.PostForm)
 	form.Required("email", "password")
 	form.IsEmail("email")
@@ -129,6 +150,7 @@ func SetUsername(w http.ResponseWriter, r *http.Request) {
 
 	username := r.Form.Get("username")
 
+	//Verify form
 	form := forms.New(r.PostForm)
 	form.MinLength("username", 3)
 
@@ -156,7 +178,7 @@ func SetUsername(w http.ResponseWriter, r *http.Request) {
 	//Check if username already exists
 	err := database.DB.Model(&models.User{}).Where("username = ?", username).First(&result)
 	if errors.Is(err.Error, gorm.ErrRecordNotFound) {
-		database.DB.Table("users").Where("email = ?", email).Update("username", username)
+		database.DB.Table("users").Where("email = ?", email).Updates(models.User{Username: username})
 		Respond(w, http.StatusOK, "Username set!")
 	} else {
 		Respond(w, http.StatusConflict, "Username already exists")
@@ -239,6 +261,55 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)
+}
+
+func VerifyEmail(w http.ResponseWriter, r *http.Request) {
+	userToken := chi.URLParam(r, "token")
+
+	token, err := ParseToken(userToken)
+	if err != nil {
+		Respond(w, http.StatusUnauthorized, "Token is invalid")
+		return
+	}
+
+	claims := token.Claims.(*jwt.StandardClaims)
+
+	//Check for token expiration
+	if claims.ExpiresAt < time.Now().Unix() {
+		Respond(w, http.StatusUnauthorized, "Token is expired")
+		return
+	}
+
+	database.DB.Table("users").Where("token = ?", userToken).Updates(models.User{IsVerified: true, Token: "."}) //"is_verified", true, "")
+	http.Redirect(w, r, "http://localhost:3000/my-profile?verified=true", http.StatusSeeOther)
+
+}
+
+//Manually triggered by user. Resends the verification email
+func SendVerifyEmail(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		log.Println(err)
+	}
+
+	email := r.Form.Get("email")
+
+	token, err := GenerateToken(models.User{}, time.Now().Add(time.Hour*48)) //In 2 days
+	if err != nil {
+		return
+	}
+
+	database.DB.Table("users").Where("email = ?", email).Updates(models.User{Token: token})
+
+	msg := models.MailData{
+		To:       email,
+		From:     "quickbrainracers@gmail.com",
+		Subject:  "Verify your email",
+		Link:     "http://localhost:5000/verifyemail/" + token,
+		Template: "verify-email.html",
+	}
+	config.App.MailChan <- msg
+
+	Respond(w, http.StatusOK, "Verification email sent!")
 }
 
 func Respond(w http.ResponseWriter, status int, msg string) {

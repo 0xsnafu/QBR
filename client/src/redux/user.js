@@ -34,9 +34,10 @@ export const userSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder.addCase(updateUser.fulfilled, (state, { payload }) => {
-            state.user.username = payload.username
-            state.user.gamesPlayed = payload.gamesPlayed
-            state.user.gamesWon = payload.gamesWon
+            state.user.username = payload.username;
+            state.user.gamesPlayed = payload.gamesPlayed;
+            state.user.gamesWon = payload.gamesWon;
+            state.user.isVerified = payload.isVerified;
 
             localStorage.setItem('jwt', document.cookie.match("(^|;)\\s*jwt\\s*=\\s*([^;]+)")?.pop() || "");
         })

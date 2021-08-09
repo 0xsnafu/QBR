@@ -15,6 +15,7 @@ type CustomClaims struct {
 	Username    string `json:"username"`
 	GamesPlayed int    `json:"gamesPlayed"`
 	GamesWon    int    `json:"gamesWon"`
+	IsVerified  bool   `json:"isVerified"`
 	jwt.StandardClaims
 }
 
@@ -24,6 +25,7 @@ func newCustomClaims(user models.User, expiryDate time.Time) *CustomClaims {
 		user.Username,
 		user.GamesPlayed,
 		user.GamesWon,
+		user.IsVerified,
 		jwt.StandardClaims{
 			Issuer:    strconv.Itoa(int(user.Id)),
 			ExpiresAt: expiryDate.Unix(),

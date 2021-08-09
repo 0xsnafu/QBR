@@ -182,7 +182,7 @@ func (c *Client) readPump() {
 
 					c.Room.Broadcast <- c.Room.GenerateMessage(8, c.Room.Rankings)
 
-					//Only proceeds if there is a token(logged in)
+					//Only proceeds if there is a token(logged in), and is verified(wont have token unless verified)
 					if len(c.JWTToken) == 0 {
 						continue
 					} else {
@@ -294,13 +294,15 @@ func ServeWs(w http.ResponseWriter, r *http.Request) {
 		var user models.User
 		database.DB.Where("id = ?", claims.Issuer).First(&user)
 
-		//Will only use username if user actually set one
-		if len(user.Username) > 0 {
-			client.Username = user.Username
-		}
+		if user.IsVerified {
+			//Will only use username if user actually set one
+			if len(user.Username) > 0 {
+				client.Username = user.Username
+			}
 
-		client.JWTToken = cookie.Value
-		client.DBID = user.Id
+			client.JWTToken = cookie.Value
+			client.DBID = user.Id
+		}
 	}
 
 	params := r.URL.Query()

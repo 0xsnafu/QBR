@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/MartyMav/QBRServer/cmd/internal/models"
+
 	"github.com/MartyMav/QBRServer/cmd/internal/config"
 	"github.com/MartyMav/QBRServer/cmd/internal/database"
 
@@ -15,6 +17,12 @@ func main() {
 	config.App.Setup()
 
 	database.Connect()
+
+	mailChan := make(chan models.MailData)
+	config.App.MailChan = mailChan
+	defer close(config.App.MailChan)
+
+	listenForMail()
 
 	websocket.Rooms = make(map[*websocket.Room]bool)
 

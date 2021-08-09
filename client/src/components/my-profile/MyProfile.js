@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import ReactGA from 'react-ga';
+import axios from 'axios';
+import querystring from 'query-string';
 
 import { useSelector, useDispatch } from 'react-redux';
 import { updateUser } from '../../redux/user'
+import { addFlashMsg } from '../../redux/flash';
 import SetUsername from './SetUsername';
 import Spinner from '../Spinner';
 import UpdatePassword from './UpdatePassword';
@@ -27,6 +30,14 @@ const MyProfile = () => {
         setIsLoading(false);
     }, [dispatch, user])
 
+    const SendVerifyEmail = () => {
+        axios.post('/sendverifyemail', querystring.stringify({ email: user.email }), { headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, withCredentials: true })
+            .then(res => {
+                dispatch(addFlashMsg({ type: 'info', msg: res.data }))
+            })
+            .catch(err => console.log(err))
+
+    }
     return (
         <>
             {isLoading
@@ -38,8 +49,14 @@ const MyProfile = () => {
                         <hr />
                         <div className='inline'>
                             <p className='text-blue-500 inline mr-2'><span className='text-black font-bold'>Played: </span>{user.gamesPlayed}</p>
-                            <p className='text-blue-500 inline'><span className='text-black font-bold'>Won: </span>{user.gamesWon}</p>
+                            <p className='text-blue-500 inline mr-2'><span className='text-black font-bold'>Won: </span>{user.gamesWon}</p>
+                            <p className={`inline font-bold ${user.isVerified ? 'text-green-500' : 'text-red-500'}`}>{user.isVerified ? "Verified" : "Unverified"}</p>
                         </div>
+
+                        {!user.isVerified && (
+                            <button className='bg-blue-500 hover:bg-blue-700 float-right py-0' onClick={() => SendVerifyEmail()}>Resend Email</button>
+                        )}
+
                         <div className='mt-4'>
                             <SetUsername />
                         </div>

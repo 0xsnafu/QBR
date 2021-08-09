@@ -20,11 +20,17 @@ func routes() http.Handler {
 
 	mux.Use(c.Handler)
 
-	mux.Post("/updatepassword", func(w http.ResponseWriter, r *http.Request) {
-		handlers.UpdatePassword(w, r)
-	})
 	mux.Get("/getuser", func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetUser(w, r)
+	})
+	mux.Get("/verifyemail/{token}", func(w http.ResponseWriter, r *http.Request) {
+		handlers.VerifyEmail(w, r)
+	})
+	mux.Post("/sendverifyemail", func(w http.ResponseWriter, r *http.Request) {
+		handlers.SendVerifyEmail(w, r)
+	})
+	mux.Post("/updatepassword", func(w http.ResponseWriter, r *http.Request) {
+		handlers.UpdatePassword(w, r)
 	})
 	mux.Post("/setusername", func(w http.ResponseWriter, r *http.Request) {
 		handlers.SetUsername(w, r)

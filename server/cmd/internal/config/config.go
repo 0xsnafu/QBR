@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/MartyMav/QBRServer/cmd/internal/models"
+
 	"github.com/joho/godotenv"
 )
 
@@ -17,6 +19,7 @@ type AppConfig struct {
 	DBUser       string
 	DBPass       string
 	SecretKey    string
+	MailChan     chan models.MailData
 }
 
 var App AppConfig

@@ -16,8 +16,12 @@ import (
 type AppConfig struct {
 	InProduction bool
 	Address      string
+	DATABASE_URL string
+	DBHost       string
 	DBUser       string
 	DBPass       string
+	DBPort       int
+	DBName       string
 	SecretKey    string
 	MailChan     chan models.MailData
 }
@@ -37,8 +41,15 @@ func (app *AppConfig) Setup() {
 		log.Fatal("Error loading IN_PRODUCTION env variable")
 	}
 
+	if App.InProduction {
+		app.DATABASE_URL = os.Getenv("DATABASE_URL")
+	} else {
+		app.DBHost = os.Getenv("DB_HOST")
+		app.DBUser = os.Getenv("DB_USER")
+		app.DBPass = os.Getenv("DB_PASS")
+		app.DBPort, _ = strconv.Atoi(os.Getenv("DB_PORT"))
+		app.DBName = os.Getenv("DB_NAME")
+	}
 	app.Address = os.Getenv("ADDRESS")
-	app.DBUser = os.Getenv("DB_USER")
-	app.DBPass = os.Getenv("DB_PASS")
 	app.SecretKey = os.Getenv("SECRET_KEY")
 }

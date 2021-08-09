@@ -6,7 +6,9 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/MartyMav/QBRServer/cmd/internal/handlers"
@@ -60,8 +62,8 @@ func CreateNewUser(conn *websocket.Conn) *Client {
 }
 
 func GenerateUsername() string {
-	usernameColors := [5]string{"Red", "Blue", "Green", "Purple", "Pink"}
-	usernameAnimals := [5]string{"Dog", "Cat", "Mosquito", "Dragon", "Donkey"}
+	var usernameColors = strings.Split(os.Getenv("USERNAME_COLORS"), ",")
+	var usernameAnimals = strings.Split(os.Getenv("USERNAME_ANIMALS"), ",")
 
 	return usernameColors[rand.Intn(len(usernameColors))] + " " + usernameAnimals[rand.Intn(len(usernameAnimals))]
 }

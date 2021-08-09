@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/MartyMav/QBRServer/cmd/internal/config"
@@ -32,7 +33,7 @@ func SendVerifyEmail(w http.ResponseWriter, r *http.Request) {
 		To:       email,
 		From:     "quickbrainracers@gmail.com",
 		Subject:  "Quick Brain Racers: Verify your email",
-		Link:     "http://localhost:5000/verify-email/" + token,
+		Link:     os.Getenv("URL") + ":5000/verify-email/" + token,
 		Template: "verify-email.html",
 	}
 	config.App.MailChan <- msg
@@ -59,7 +60,7 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	database.DB.Table("users").Where("token = ?", userToken).Updates(models.User{IsVerified: true, Token: "."})
-	http.Redirect(w, r, "http://localhost:3000/my-profile?verified=true", http.StatusSeeOther)
+	http.Redirect(w, r, os.Getenv("URL")+":3000/my-profile?verified=true", http.StatusSeeOther)
 
 }
 
@@ -93,7 +94,7 @@ func SendPasswordResetEmail(w http.ResponseWriter, r *http.Request) {
 		To:       email,
 		From:     "quickbrainracers@gmail.com",
 		Subject:  "Quick Brain Racers: Password Reset",
-		Link:     "http://localhost:3000/reset-password/" + token,
+		Link:     os.Getenv("URL") + ":3000/reset-password/" + token,
 		Template: "password-reset.html",
 	}
 	config.App.MailChan <- msg

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from "react-router-dom";
 import { useSelector } from 'react-redux';
 
 import SignIn from './auth/SignIn';
@@ -39,6 +40,12 @@ const Modal = ({ isOpen, CloseModal, modalViewing, clickedForgotPassword }) => {
                 {modal}
 
                 {modalViewing === 'Sign In' && (<p className='text-blue-500 underline cursor-pointer float-left mt-2' onClick={() => clickedForgotPassword()}>Forgot Password?</p>)}
+
+                {modalViewing === 'Sign Up' && (<p className='block my-2 text-gray-500 text-center'>By Signing Up, you agree to the
+                    <Link className='text-blue-500 underline' to='/about' onClick={() => CloseModal()}> Terms And Conditions</Link> and
+                    <Link className='text-blue-500 underline' to='/about' onClick={() => CloseModal()} >Privacy Policy</Link>.
+                </p>
+                )}
             </div>
 
         </div>

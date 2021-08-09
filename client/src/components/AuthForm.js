@@ -77,9 +77,8 @@ const AuthForm = ({ buttonText }) => {
                         value={email} onChange={e => setEmail(e.target.value)} required />
                 </label>
 
-                <label className='relative'>
+                <label>
                     <span className='text-gray-700 font-bold'>Password</span>
-                    {buttonText === 'Sign In' && (<p className='text-blue-500 underline cursor-pointer absolute top-0 right-0' >Forgot Password?</p>)}
                     <input type='password' name='password' className='w-full'
                         value={password} onChange={e => setPassword(e.target.value)} required />
                 </label>
@@ -89,6 +88,7 @@ const AuthForm = ({ buttonText }) => {
             <button className='bg-green-500 hover:bg-green-700 block mx-auto w-1/4' disabled={isProcessing ? true : false}>
                 {isProcessing ? <Spinner /> : buttonText}
             </button>
+
         </form>
     )
 }

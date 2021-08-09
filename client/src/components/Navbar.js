@@ -6,16 +6,15 @@ import { useDispatch } from 'react-redux';
 import { addFlashMsg } from '../redux/flash';
 import { logoutUser } from '../redux/user';
 
-import SignInModal from './modals/SignInModal'
-import SignUpModal from './modals/SignUpModal';
+import Modal from './Modal'
 
 const NavBar = () => {
     const { user } = useSelector(state => state.user);
     const dispatch = useDispatch();
 
     const [navbarOpen, setNavbarOpen] = useState(false);
-    const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
-    const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalViewing, setModalViewing] = useState("");
 
     const authLinks = (
         <>
@@ -32,10 +31,10 @@ const NavBar = () => {
     const guestLinks = (
         <>
             <li>
-                <button className="qbr-nav-link" onClick={() => setIsSignInModalOpen(!isSignInModalOpen)}>Sign In</button>
+                <button className="qbr-nav-link" onClick={() => { setIsModalOpen(true); setModalViewing("Sign In") }}>Sign In</button>
             </li>
             <li>
-                <button className="qbr-nav-link bg-green-500 text-white" onClick={() => setIsSignUpModalOpen(!isSignUpModalOpen)}>Sign Up</button>
+                <button className="qbr-nav-link bg-green-500 text-white" onClick={() => { setIsModalOpen(true); setModalViewing("Sign Up") }}>Sign Up</button>
             </li>
         </>
     )
@@ -71,8 +70,7 @@ const NavBar = () => {
                 </nav>
             </div>
 
-            <SignInModal isSignInModalOpen={isSignInModalOpen} CloseModal={() => setIsSignInModalOpen(false)} />
-            <SignUpModal isSignUpModalOpen={isSignUpModalOpen} CloseModal={() => setIsSignUpModalOpen(false)} />
+            <Modal isOpen={isModalOpen} CloseModal={() => { setIsModalOpen(false); setModalViewing(""); }} modalViewing={modalViewing} clickedForgotPassword={() => setModalViewing("Forgot Password")} />
         </>
     )
 }

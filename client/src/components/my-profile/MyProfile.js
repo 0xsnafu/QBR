@@ -31,7 +31,7 @@ const MyProfile = () => {
     }, [dispatch, user])
 
     const SendVerifyEmail = () => {
-        axios.post('/sendverifyemail', querystring.stringify({ email: user.email }), { headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, withCredentials: true })
+        axios.post('/send-verify-email', querystring.stringify({ email: user.email }), { headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, withCredentials: true })
             .then(res => {
                 dispatch(addFlashMsg({ type: 'info', msg: res.data }))
             })

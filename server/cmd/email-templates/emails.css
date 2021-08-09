@@ -17,7 +17,7 @@ body {
     border-radius: .25rem;
     border-width: 0px;
     border-style: solid;
-    color: white;
+    color: white !important;
     font-weight: bold;
     width: 30%;
     font-size: x-large;

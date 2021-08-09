@@ -22,10 +22,13 @@ func listenForMail() {
 	}()
 }
 
-func sendMsg(m models.MailData) { //port 465
+func sendMsg(m models.MailData) {
 	server := mail.NewSMTPClient()
-	server.Host = "localhost"
-	server.Port = 1025
+	server.Host = config.App.MailHost
+	server.Port = config.App.MailPort
+	server.Username = config.App.MailUsername
+	server.Password = config.App.MailPassword
+	server.Encryption = mail.EncryptionSTARTTLS
 	server.KeepAlive = false
 	server.ConnectTimeout = 10 * time.Second
 	server.SendTimeout = 10 * time.Second

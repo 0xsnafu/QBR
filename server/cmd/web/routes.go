@@ -20,15 +20,26 @@ func routes() http.Handler {
 
 	mux.Use(c.Handler)
 
+	//Emails
+	mux.Post("/send-verify-email", func(w http.ResponseWriter, r *http.Request) {
+		handlers.SendVerifyEmail(w, r)
+	})
+	mux.Get("/verify-email/{token}", func(w http.ResponseWriter, r *http.Request) {
+		handlers.VerifyEmail(w, r)
+	})
+	mux.Post("/send-password-reset", func(w http.ResponseWriter, r *http.Request) {
+		handlers.SendPasswordResetEmail(w, r)
+	})
+	mux.Post("/reset-password", func(w http.ResponseWriter, r *http.Request) {
+		handlers.ResetPassword(w, r)
+	})
+
+	//Auth
 	mux.Get("/getuser", func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetUser(w, r)
 	})
-	mux.Get("/verifyemail/{token}", func(w http.ResponseWriter, r *http.Request) {
-		handlers.VerifyEmail(w, r)
-	})
-	mux.Post("/sendverifyemail", func(w http.ResponseWriter, r *http.Request) {
-		handlers.SendVerifyEmail(w, r)
-	})
+
+	//User
 	mux.Post("/updatepassword", func(w http.ResponseWriter, r *http.Request) {
 		handlers.UpdatePassword(w, r)
 	})
@@ -38,7 +49,6 @@ func routes() http.Handler {
 	mux.Post("/logout", func(w http.ResponseWriter, r *http.Request) {
 		handlers.Logout(w, r)
 	})
-
 	mux.Post("/register", func(w http.ResponseWriter, r *http.Request) {
 		handlers.Register(w, r)
 	})
@@ -46,6 +56,7 @@ func routes() http.Handler {
 		handlers.Login(w, r)
 	})
 
+	//Sockets
 	mux.Get("/ws", func(w http.ResponseWriter, r *http.Request) {
 		websocket.ServeWs(w, r)
 	})

@@ -16,6 +16,7 @@ import Game from "./components/Game";
 import { useDispatch, useSelector } from 'react-redux';
 import { setUser, logoutUser } from './redux/user';
 import MyProfile from "./components/my-profile/MyProfile";
+import ResetPassword from "./components/auth/ResetPassword";
 
 const App = () => {
   const { flashMsgs } = useSelector(state => state.flash);
@@ -55,6 +56,7 @@ const App = () => {
         <Route exact path='/about' component={About} />
         <Route exact path='/play' component={Game} />
         <Route exact path='/my-profile' component={MyProfile} />
+        <Route exact path='/reset-password/:token' component={ResetPassword} />
 
       </div>
     </Router>

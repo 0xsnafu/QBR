@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/MartyMav/QBRServer/cmd/internal/config"
+	"github.com/MartyMav/QBRServer/cmd/internal/database"
 	"github.com/MartyMav/QBRServer/cmd/internal/models"
 	"github.com/golang-jwt/jwt"
 )
@@ -63,4 +65,56 @@ func NewCookie(token string, expiryDate time.Time) *http.Cookie {
 		HttpOnly: false,
 		Secure:   config.App.InProduction,
 	}
+}
+
+func GetUser(w http.ResponseWriter, r *http.Request) {
+	email := IsAuthenticated(w, r)
+
+	if email == "" {
+		Respond(w, http.StatusUnauthorized, "You need to be signed in!")
+		return
+	}
+
+	//Get ExpiresAt from old JWT
+	oldCookie, _ := r.Cookie("jwt")
+	oldToken, err := ParseToken(oldCookie.Value)
+	if err != nil {
+		Respond(w, http.StatusUnauthorized, "Unauthenticated")
+		return
+	}
+
+	oldClaims := oldToken.Claims.(*jwt.StandardClaims)
+
+	var user models.User
+	database.DB.Where("email = ?", email).First(&user)
+
+	//Create new token with updated data
+	token, err := GenerateToken(user, time.Unix(oldClaims.ExpiresAt, 0))
+	if err != nil {
+		Respond(w, http.StatusInternalServerError, "Could not log in")
+		return
+	}
+
+	http.SetCookie(w, NewCookie(token, time.Unix(oldClaims.ExpiresAt, 0)))
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(user)
+}
+
+func IsAuthenticated(w http.ResponseWriter, r *http.Request) string {
+	cookie, _ := r.Cookie("jwt")
+
+	token, err := ParseToken(cookie.Value)
+	if err != nil {
+		Respond(w, http.StatusUnauthorized, "Unauthenticated")
+		return ""
+	}
+
+	claims := token.Claims.(*jwt.StandardClaims)
+
+	var user models.User
+
+	database.DB.Where("id = ?", claims.Issuer).First(&user)
+
+	return user.Email
 }

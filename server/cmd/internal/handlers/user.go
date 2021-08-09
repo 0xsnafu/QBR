@@ -9,11 +9,8 @@ import (
 
 	"github.com/MartyMav/QBRServer/cmd/internal/config"
 	"github.com/MartyMav/QBRServer/cmd/internal/forms"
-	"github.com/go-chi/chi"
 	"github.com/jackc/pgconn"
 	"gorm.io/gorm"
-
-	"github.com/golang-jwt/jwt"
 
 	"github.com/MartyMav/QBRServer/cmd/internal/database"
 
@@ -68,8 +65,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	msg := models.MailData{
 		To:       email,
 		From:     "quickbrainracers@gmail.com",
-		Subject:  "Verify your email",
-		Link:     "http://localhost:5000/verifyemail/" + token,
+		Subject:  "Quick Brain Racers: Verify your email",
+		Link:     "http://localhost:5000/verify-email/" + token,
 		Template: "verify-email.html",
 	}
 	config.App.MailChan <- msg
@@ -118,24 +115,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, NewCookie(token, expiryDate))
 	w.WriteHeader(http.StatusOK)
-}
-
-func IsAuthenticated(w http.ResponseWriter, r *http.Request) string {
-	cookie, _ := r.Cookie("jwt")
-
-	token, err := ParseToken(cookie.Value)
-	if err != nil {
-		Respond(w, http.StatusUnauthorized, "Unauthenticated")
-		return ""
-	}
-
-	claims := token.Claims.(*jwt.StandardClaims)
-
-	var user models.User
-
-	database.DB.Where("id = ?", claims.Issuer).First(&user)
-
-	return user.Email
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {
@@ -227,89 +206,6 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	database.DB.Save(&user)
 
 	Respond(w, http.StatusOK, "Password successfully updated!")
-}
-
-func GetUser(w http.ResponseWriter, r *http.Request) {
-	email := IsAuthenticated(w, r)
-
-	if email == "" {
-		Respond(w, http.StatusUnauthorized, "You need to be signed in!")
-		return
-	}
-
-	//Get ExpiresAt from old JWT
-	oldCookie, _ := r.Cookie("jwt")
-	oldToken, err := ParseToken(oldCookie.Value)
-	if err != nil {
-		Respond(w, http.StatusUnauthorized, "Unauthenticated")
-		return
-	}
-
-	oldClaims := oldToken.Claims.(*jwt.StandardClaims)
-
-	var user models.User
-	database.DB.Where("email = ?", email).First(&user)
-
-	//Create new token with updated data
-	token, err := GenerateToken(user, time.Unix(oldClaims.ExpiresAt, 0))
-	if err != nil {
-		Respond(w, http.StatusInternalServerError, "Could not log in")
-		return
-	}
-
-	http.SetCookie(w, NewCookie(token, time.Unix(oldClaims.ExpiresAt, 0)))
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(user)
-}
-
-func VerifyEmail(w http.ResponseWriter, r *http.Request) {
-	userToken := chi.URLParam(r, "token")
-
-	token, err := ParseToken(userToken)
-	if err != nil {
-		Respond(w, http.StatusUnauthorized, "Token is invalid")
-		return
-	}
-
-	claims := token.Claims.(*jwt.StandardClaims)
-
-	//Check for token expiration
-	if claims.ExpiresAt < time.Now().Unix() {
-		Respond(w, http.StatusUnauthorized, "Token is expired")
-		return
-	}
-
-	database.DB.Table("users").Where("token = ?", userToken).Updates(models.User{IsVerified: true, Token: "."}) //"is_verified", true, "")
-	http.Redirect(w, r, "http://localhost:3000/my-profile?verified=true", http.StatusSeeOther)
-
-}
-
-//Manually triggered by user. Resends the verification email
-func SendVerifyEmail(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		log.Println(err)
-	}
-
-	email := r.Form.Get("email")
-
-	token, err := GenerateToken(models.User{}, time.Now().Add(time.Hour*48)) //In 2 days
-	if err != nil {
-		return
-	}
-
-	database.DB.Table("users").Where("email = ?", email).Updates(models.User{Token: token})
-
-	msg := models.MailData{
-		To:       email,
-		From:     "quickbrainracers@gmail.com",
-		Subject:  "Verify your email",
-		Link:     "http://localhost:5000/verifyemail/" + token,
-		Template: "verify-email.html",
-	}
-	config.App.MailChan <- msg
-
-	Respond(w, http.StatusOK, "Verification email sent!")
 }
 
 func Respond(w http.ResponseWriter, status int, msg string) {

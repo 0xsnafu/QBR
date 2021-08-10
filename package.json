@@ -1,0 +1,26 @@
+{
+  "name": "qbr",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "client": "npm start --prefix client",
+    "server": "cd server/ && main.exe",
+    "see": "concurrently \"npm run client\" \"npm run server\"",
+    "heroku-postbuild": "concurrently \"npm run client\" \"npm run server\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MartyMav/QBR.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MartyMav/QBR/issues"
+  },
+  "homepage": "https://github.com/MartyMav/QBR#readme",
+  "dependencies": {
+    "concurrently": "^6.2.1"
+  }
+}

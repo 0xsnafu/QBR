@@ -36,7 +36,7 @@ const Modal = ({ isOpen, CloseModal, modalViewing, clickedForgotPassword }) => {
     return (
         <div className={`top-0 absolute w-screen h-screen ${isHidden ? 'hidden' : 'block'}`}>
             <div className='qbr-modal-bg' onClick={() => CloseModal()}></div>
-            <div className='absolute top-1/4 qbr-card bg-white p-5 w-11/12 md:w-1/4 modal-center z-10'>
+            <div className='absolute top-1/3 md:top-1/4 qbr-card bg-white p-5 w-11/12 md:w-1/4 modal-center z-10'>
                 {modal}
 
                 {modalViewing === 'Sign In' && (<p className='text-blue-500 underline cursor-pointer float-left mt-2' onClick={() => clickedForgotPassword()}>Forgot Password?</p>)}

@@ -18,11 +18,10 @@ const NavBar = () => {
 
     const authLinks = (
         <>
-            <p>{user && user.username ? user.username : "Newbie"}</p>
-            <Link to={'/my-profile'} data-tip='My Profile' className='qbr-nav-link font-bold' >
+            <Link to={'/my-profile'} data-tip='My Profile' className='qbr-nav-link font-bold' onClick={() => setNavbarOpen(false)}>
                 My Profile
             </Link>
-            <li className="nav-item">
+            <li className="nav-item" onClick={() => setNavbarOpen(false)}>
                 <button className="qbr-nav-link" onClick={() => { dispatch(logoutUser({})); dispatch(addFlashMsg({ msg: "Logged out :(", type: 'success' })); }}>Sign Out</button>
             </li>
         </>
@@ -70,7 +69,8 @@ const NavBar = () => {
                 </nav>
             </div>
 
-            <Modal isOpen={isModalOpen} CloseModal={() => { setIsModalOpen(false); setModalViewing(""); }} modalViewing={modalViewing} clickedForgotPassword={() => setModalViewing("Forgot Password")} />
+            <Modal isOpen={isModalOpen} CloseModal={() => { setIsModalOpen(false); setModalViewing(""); }} modalViewing={modalViewing}
+                clickedForgotPassword={() => setModalViewing("Forgot Password")} />
         </>
     )
 }

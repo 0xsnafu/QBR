@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -115,6 +116,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, NewCookie(token, expiryDate))
 	w.WriteHeader(http.StatusOK)
+	fmt.Println("in login")
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {

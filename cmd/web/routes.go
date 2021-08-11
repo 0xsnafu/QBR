@@ -15,6 +15,7 @@ func routes() http.Handler {
 	mux := chi.NewRouter()
 
 	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000", "https://quickbrainracers.com"},
 		AllowCredentials: true,
 	})
 

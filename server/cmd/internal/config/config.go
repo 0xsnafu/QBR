@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/MartyMav/QBRServer/cmd/internal/models"
-
 	"github.com/joho/godotenv"
 )
 
@@ -37,13 +36,10 @@ func (app *AppConfig) Setup() {
 
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal(err)
 	}
 
-	app.InProduction, err = strconv.ParseBool(os.Getenv("IN_PRODUCTION"))
-	if err != nil {
-		log.Fatal("Error loading IN_PRODUCTION env variable")
-	}
+	app.InProduction, _ = strconv.ParseBool(os.Getenv("IN_PRODUCTION"))
 
 	if App.InProduction {
 		app.DATABASE_URL = os.Getenv("DATABASE_URL")

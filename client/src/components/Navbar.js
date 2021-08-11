@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from "react-router-dom";
 
-import { useSelector } from 'react-redux';
-import { useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { addFlashMsg } from '../redux/flash';
 import { logoutUser } from '../redux/user';
 

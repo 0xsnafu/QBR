@@ -74,16 +74,6 @@ func ParseToken(oldToken string) (*jwt.Token, error) {
 	return parsedToken, nil
 }
 
-func NewCookie(token string, expiryDate time.Time) *http.Cookie {
-	return &http.Cookie{
-		Name:     "jwt",
-		Value:    token,
-		Expires:  expiryDate,
-		HttpOnly: false,
-		Secure:   config.App.InProduction,
-	}
-}
-
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	if !IsAuthorized(r) {
 		Respond(w, http.StatusUnauthorized, "You need to be signed in!")

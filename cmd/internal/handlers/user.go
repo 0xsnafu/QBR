@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -94,7 +93,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user models.User
-	expiryDate := time.Now().Add(time.Hour * 24) //1 day
+	expiryDate := time.Now().Add(time.Hour * 72) //3 days
 
 	database.DB.Where("email = ?", email).First(&user)
 
@@ -114,8 +113,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("New Token : ", token)
-	fmt.Println("Expiry Date : ", expiryDate)
 	http.SetCookie(w, NewCookie(token, expiryDate))
 	w.WriteHeader(http.StatusOK)
 }

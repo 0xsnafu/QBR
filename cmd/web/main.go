@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/MartyMav/QBR/cmd/internal/models"
 
@@ -26,10 +27,19 @@ func main() {
 
 	websocket.Rooms = make(map[*websocket.Room]bool)
 
-	fmt.Println("Starting Quick Brain Racers Server on " + config.App.Address)
+	port := os.Getenv("PORT")
+
+	fmt.Println("Starting Quick Brain Racers Server on " + port)
+
+	var portPrefix string
+	if config.App.InProduction {
+		portPrefix = ":"
+	} else {
+		portPrefix = "localhost:"
+	}
 
 	srv := &http.Server{
-		Addr:    config.App.Address,
+		Addr:    portPrefix + port,
 		Handler: routes(),
 	}
 

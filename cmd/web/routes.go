@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/MartyMav/QBR/cmd/internal/handlers"
 	"github.com/rs/cors"
@@ -20,6 +21,11 @@ func routes() http.Handler {
 	})
 
 	mux.Use(c.Handler)
+
+	//Redirect any / requests to server, to the live client
+	mux.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, os.Getenv("URL")+"https://quickbrainracers.com", http.StatusSeeOther)
+	})
 
 	//Emails
 	mux.Post("/send-verify-email", func(w http.ResponseWriter, r *http.Request) {

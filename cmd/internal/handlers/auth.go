@@ -13,6 +13,23 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
+func IsAuthorized(r *http.Request) bool {
+	if r.Header["Authorization"] != nil { //Found token
+		token, err := ParseToken(r.Header["Authorization"][0])
+		if err != nil {
+			fmt.Println(err.Error())
+			return false
+		}
+
+		if token.Valid {
+			return true
+		}
+
+	}
+
+	return false //There was no token
+}
+
 type CustomClaims struct {
 	Email       string `json:"email"`
 	Username    string `json:"username"`
@@ -37,14 +54,13 @@ func newCustomClaims(user models.User, expiryDate time.Time) *CustomClaims {
 }
 
 func GenerateToken(user models.User, expiryDate time.Time) (string, error) {
-	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, newCustomClaims(user, expiryDate))
-
-	token, err := claims.SignedString([]byte(config.App.SecretKey))
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, newCustomClaims(user, expiryDate))
+	signedToken, err := token.SignedString([]byte(config.App.SecretKey))
 	if err != nil {
 		return "", err
 	}
 
-	return token, nil
+	return signedToken, nil
 }
 
 func ParseToken(oldToken string) (*jwt.Token, error) {
@@ -69,25 +85,21 @@ func NewCookie(token string, expiryDate time.Time) *http.Cookie {
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
-	email := IsAuthenticated(w, r)
-
-	if email == "" {
+	if !IsAuthorized(r) {
 		Respond(w, http.StatusUnauthorized, "You need to be signed in!")
 		return
 	}
 
-	//Get ExpiresAt from old JWT
-	oldCookie, _ := r.Cookie("jwt")
-	oldToken, err := ParseToken(oldCookie.Value)
+	//Get ExpiresAt from old JWT, so as not to extend the expiry date
+	oldToken, err := ParseToken(r.Header.Get("Authorization"))
 	if err != nil {
-		Respond(w, http.StatusUnauthorized, "Unauthenticated")
+		Respond(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
-	oldClaims := oldToken.Claims.(*jwt.StandardClaims)
-
 	var user models.User
-	database.DB.Where("email = ?", email).First(&user)
+	oldClaims := oldToken.Claims.(*jwt.StandardClaims)
+	database.DB.Where("id = ?", oldClaims.Issuer).First(&user)
 
 	//Create new token with updated data
 	token, err := GenerateToken(user, time.Unix(oldClaims.ExpiresAt, 0))
@@ -96,26 +108,6 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.SetCookie(w, NewCookie(token, time.Unix(oldClaims.ExpiresAt, 0)))
-
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(user)
-}
-
-func IsAuthenticated(w http.ResponseWriter, r *http.Request) string {
-	cookie, _ := r.Cookie("jwt")
-	fmt.Println("GETTING COOKIES:", r.Cookies())
-	token, err := ParseToken(cookie.Value)
-	if err != nil {
-		Respond(w, http.StatusUnauthorized, "Unauthenticated")
-		return ""
-	}
-
-	claims := token.Claims.(*jwt.StandardClaims)
-
-	var user models.User
-
-	database.DB.Where("id = ?", claims.Issuer).First(&user)
-
-	return user.Email
+	json.NewEncoder(w).Encode(token)
 }

@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -113,9 +112,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		Respond(w, http.StatusInternalServerError, "Could not log in")
 		return
 	}
-	newCookie := NewCookie(token, expiryDate)
-	fmt.Println("NEW COOKIE: ", newCookie)
-	http.SetCookie(w, newCookie)
+
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(token)
 }
@@ -141,7 +138,7 @@ func SetUsername(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	email := IsAuthenticated(w, r)
+	email := "test@gmail.com" //IsAuthenticated(w, r)
 
 	if email == "" {
 		Respond(w, http.StatusUnauthorized, "You need to be signed in!")
@@ -187,7 +184,7 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Check if logged in
-	email := IsAuthenticated(w, r)
+	email := "test@gmail.com" //IsAuthenticated(w, r)
 
 	if email == "" {
 		Respond(w, http.StatusUnauthorized, "You need to be signed in!")

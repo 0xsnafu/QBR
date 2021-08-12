@@ -33,7 +33,7 @@ func SendVerifyEmail(w http.ResponseWriter, r *http.Request) {
 		To:       email,
 		From:     "quickbrainracers@gmail.com",
 		Subject:  "Quick Brain Racers: Verify your email",
-		Link:     os.Getenv("URL") + "/verify-email/" + token,
+		Link:     os.Getenv("SERVER_URL") + "/verify-email/" + token,
 		Template: "verify-email.html",
 	}
 	config.App.MailChan <- msg
@@ -60,7 +60,7 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	database.DB.Table("users").Where("token = ?", userToken).Updates(models.User{IsVerified: true, Token: "."})
-	http.Redirect(w, r, os.Getenv("URL")+"/my-profile?verified=true", http.StatusSeeOther)
+	http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/my-profile?verified=true", http.StatusSeeOther)
 
 }
 
@@ -94,7 +94,7 @@ func SendPasswordResetEmail(w http.ResponseWriter, r *http.Request) {
 		To:       email,
 		From:     "quickbrainracers@gmail.com",
 		Subject:  "Quick Brain Racers: Password Reset",
-		Link:     os.Getenv("URL") + "/reset-password/" + token,
+		Link:     os.Getenv("CLIENT_URL") + "/reset-password/" + token,
 		Template: "password-reset.html",
 	}
 	config.App.MailChan <- msg

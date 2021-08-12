@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -112,14 +113,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		Respond(w, http.StatusInternalServerError, "Could not log in")
 		return
 	}
-	// res.setHeader('Access-Control-Allow-Headers', 'Origin,X-Requested-With,content-type,set-cookie');
-	// // Set to true if you need the website to include cookies in the requests sent
-	// // to the API (e.g. in case you use sessions)
-	// res.setHeader('Access-Control-Allow-Credentials', true);
-	http.SetCookie(w, NewCookie(token, expiryDate))
-	w.Header().Set("Access-Control-Allow-Headers", "Set-Cookie")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	// w.WriteHeader(http.StatusOK)
+	newCookie := NewCookie(token, expiryDate)
+	fmt.Println("NEW COOKIE: ", newCookie)
+	http.SetCookie(w, newCookie)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(token)
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {

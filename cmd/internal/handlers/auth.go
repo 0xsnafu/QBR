@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -62,7 +63,7 @@ func NewCookie(token string, expiryDate time.Time) *http.Cookie {
 		Name:     "jwt",
 		Value:    token,
 		Expires:  expiryDate,
-		HttpOnly: true,
+		HttpOnly: false,
 		Secure:   config.App.InProduction,
 	}
 }
@@ -103,7 +104,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 func IsAuthenticated(w http.ResponseWriter, r *http.Request) string {
 	cookie, _ := r.Cookie("jwt")
-
+	fmt.Println("GETTING COOKIES:", r.Cookies())
 	token, err := ParseToken(cookie.Value)
 	if err != nil {
 		Respond(w, http.StatusUnauthorized, "Unauthenticated")

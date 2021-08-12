@@ -13,9 +13,9 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-func IsAuthorized(r *http.Request) bool {
-	if r.Header["Authorization"] != nil { //Found token
-		token, err := ParseToken(r.Header["Authorization"][0])
+func IsAuthorized(oldToken string) bool {
+	if len(oldToken) > 10 { //Found token
+		token, err := ParseToken(oldToken)
 		if err != nil {
 			fmt.Println(err.Error())
 			return false
@@ -75,7 +75,7 @@ func ParseToken(oldToken string) (*jwt.Token, error) {
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
-	if !IsAuthorized(r) {
+	if !IsAuthorized(r.Header.Get("Authorization")) {
 		Respond(w, http.StatusUnauthorized, "You need to be signed in!")
 		return
 	}

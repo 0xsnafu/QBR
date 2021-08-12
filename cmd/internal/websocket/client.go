@@ -281,11 +281,12 @@ func ServeWs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	params := r.URL.Query()
+
 	client := CreateNewUser(conn)
 
-	cookie, err := r.Cookie("jwt")
-	if err == nil { //No error; There was a cookie(logged in)
-		token, err := handlers.ParseToken(cookie.Value)
+	if handlers.IsAuthorized(params.Get("token")) { //There was a token in Header(logged in)
+		token, err := handlers.ParseToken(params.Get("token"))
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -302,12 +303,10 @@ func ServeWs(w http.ResponseWriter, r *http.Request) {
 				client.Username = user.Username
 			}
 
-			client.JWTToken = cookie.Value
+			client.JWTToken = params.Get("token")
 			client.DBID = user.Id
 		}
 	}
-
-	params := r.URL.Query()
 
 	inParty, err := strconv.ParseBool(params.Get("inParty"))
 	if err != nil {

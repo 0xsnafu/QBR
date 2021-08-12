@@ -123,7 +123,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func SetUsername(w http.ResponseWriter, r *http.Request) {
-	if !IsAuthorized(r) {
+	if !IsAuthorized(r.Header.Get("Authorization")) {
 		Respond(w, http.StatusUnauthorized, "You need to be signed in!")
 		return
 	}
@@ -173,7 +173,7 @@ func SetUsername(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdatePassword(w http.ResponseWriter, r *http.Request) {
-	if !IsAuthorized(r) {
+	if !IsAuthorized(r.Header.Get("Authorization")) {
 		Respond(w, http.StatusUnauthorized, "You need to be signed in!")
 		return
 	}

@@ -9,6 +9,7 @@ import (
 
 	"github.com/MartyMav/QBR/cmd/internal/config"
 	"github.com/MartyMav/QBR/cmd/internal/forms"
+	"github.com/golang-jwt/jwt"
 	"github.com/jackc/pgconn"
 	"gorm.io/gorm"
 
@@ -118,11 +119,16 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {
-	http.SetCookie(w, NewCookie("", time.Now().Add(-time.Hour)))
 	Respond(w, http.StatusOK, "Logged out!")
 }
 
 func SetUsername(w http.ResponseWriter, r *http.Request) {
+	if !IsAuthorized(r) {
+		Respond(w, http.StatusUnauthorized, "You need to be signed in!")
+		return
+	}
+
+	//Check form validity
 	if err := r.ParseForm(); err != nil {
 		log.Println(err)
 	}
@@ -138,26 +144,27 @@ func SetUsername(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	email := "test@gmail.com" //IsAuthenticated(w, r)
-
-	if email == "" {
-		Respond(w, http.StatusUnauthorized, "You need to be signed in!")
+	token, err := ParseToken(r.Header.Get("Authorization"))
+	if err != nil {
+		Respond(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
+
+	claims := token.Claims.(*jwt.StandardClaims)
 
 	result := map[string]interface{}{}
 
 	//Check if user already has username
-	database.DB.Model(&models.User{}).Where("email = ?", email).First(&result)
+	database.DB.Model(&models.User{}).Where("id = ?", claims.Issuer).First(&result)
 	if len(result["username"].(string)) > 0 {
 		Respond(w, http.StatusBadRequest, "You already have a username!")
 		return
 	}
 
 	//Check if username already exists
-	err := database.DB.Model(&models.User{}).Where("username = ?", username).First(&result)
-	if errors.Is(err.Error, gorm.ErrRecordNotFound) {
-		database.DB.Table("users").Where("email = ?", email).Updates(models.User{Username: username})
+	dbErr := database.DB.Model(&models.User{}).Where("username = ?", username).First(&result)
+	if errors.Is(dbErr.Error, gorm.ErrRecordNotFound) {
+		database.DB.Table("users").Where("id = ?", claims.Issuer).Updates(models.User{Username: username})
 		Respond(w, http.StatusOK, "Username set!")
 	} else {
 		Respond(w, http.StatusConflict, "Username already exists")
@@ -166,11 +173,16 @@ func SetUsername(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdatePassword(w http.ResponseWriter, r *http.Request) {
+	if !IsAuthorized(r) {
+		Respond(w, http.StatusUnauthorized, "You need to be signed in!")
+		return
+	}
+
+	//Check form validity
 	if err := r.ParseForm(); err != nil {
 		log.Println(err)
 	}
 
-	//Check form validity
 	oldPass := r.Form.Get("oldPass")
 	newPass := r.Form.Get("newPass")
 
@@ -183,16 +195,16 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Check if logged in
-	email := "test@gmail.com" //IsAuthenticated(w, r)
-
-	if email == "" {
-		Respond(w, http.StatusUnauthorized, "You need to be signed in!")
+	token, err := ParseToken(r.Header.Get("Authorization"))
+	if err != nil {
+		Respond(w, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 
+	claims := token.Claims.(*jwt.StandardClaims)
+
 	var user models.User
-	database.DB.Where("email = ?", email).First(&user)
+	database.DB.Where("id = ?", claims.Issuer).First(&user)
 
 	//Check if old password is correct
 	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(oldPass)); err != nil {

@@ -3,12 +3,12 @@ package main
 import (
 	"net/http"
 
-	"github.com/MartyMav/QBRServer/cmd/internal/handlers"
+	"github.com/MartyMav/QBR/cmd/internal/handlers"
 	"github.com/rs/cors"
 
 	"github.com/go-chi/chi"
 
-	"github.com/MartyMav/QBRServer/cmd/internal/websocket"
+	"github.com/MartyMav/QBR/cmd/internal/websocket"
 )
 
 func routes() http.Handler {

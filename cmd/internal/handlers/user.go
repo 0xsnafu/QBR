@@ -7,16 +7,16 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/MartyMav/QBRServer/cmd/internal/config"
-	"github.com/MartyMav/QBRServer/cmd/internal/forms"
+	"github.com/MartyMav/QBR/cmd/internal/config"
+	"github.com/MartyMav/QBR/cmd/internal/forms"
 	"github.com/jackc/pgconn"
 	"gorm.io/gorm"
 
-	"github.com/MartyMav/QBRServer/cmd/internal/database"
+	"github.com/MartyMav/QBR/cmd/internal/database"
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/MartyMav/QBRServer/cmd/internal/models"
+	"github.com/MartyMav/QBR/cmd/internal/models"
 )
 
 func Register(w http.ResponseWriter, r *http.Request) {

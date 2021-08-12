@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MartyMav/QBRServer/cmd/internal/handlers"
+	"github.com/MartyMav/QBR/cmd/internal/handlers"
 
-	"github.com/MartyMav/QBRServer/cmd/internal/database"
-	"github.com/MartyMav/QBRServer/cmd/internal/models"
+	"github.com/MartyMav/QBR/cmd/internal/database"
+	"github.com/MartyMav/QBR/cmd/internal/models"
 	"github.com/golang-jwt/jwt"
 
 	"github.com/gorilla/websocket"

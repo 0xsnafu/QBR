@@ -5,12 +5,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/MartyMav/QBRServer/cmd/internal/models"
+	"github.com/MartyMav/QBR/cmd/internal/models"
 
-	"github.com/MartyMav/QBRServer/cmd/internal/config"
-	"github.com/MartyMav/QBRServer/cmd/internal/database"
+	"github.com/MartyMav/QBR/cmd/internal/config"
+	"github.com/MartyMav/QBR/cmd/internal/database"
 
-	"github.com/MartyMav/QBRServer/cmd/internal/websocket"
+	"github.com/MartyMav/QBR/cmd/internal/websocket"
 )
 
 func main() {

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/MartyMav/QBRServer/cmd/internal/models"
+	"github.com/MartyMav/QBR/cmd/internal/models"
 	"github.com/joho/godotenv"
 )
 

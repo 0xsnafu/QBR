@@ -1,4 +1,4 @@
-module github.com/MartyMav/QBRServer
+module github.com/MartyMav/QBR
 
 go 1.16
 

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MartyMav/QBRServer/cmd/internal/config"
-	"github.com/MartyMav/QBRServer/cmd/internal/models"
+	"github.com/MartyMav/QBR/cmd/internal/config"
+	"github.com/MartyMav/QBR/cmd/internal/models"
 	mail "github.com/xhit/go-simple-mail/v2"
 )
 

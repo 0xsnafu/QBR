@@ -3,8 +3,8 @@ package database
 import (
 	"fmt"
 
-	"github.com/MartyMav/QBRServer/cmd/internal/config"
-	"github.com/MartyMav/QBRServer/cmd/internal/models"
+	"github.com/MartyMav/QBR/cmd/internal/config"
+	"github.com/MartyMav/QBR/cmd/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

@@ -17,6 +17,7 @@ func routes() http.Handler {
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000", "https://quickbrainracers.com", "https://eloquent-ardinghelli-f7bb08.netlify.app"},
 		AllowCredentials: true,
+		ExposedHeaders:   []string{"Set-Cookie", "set-cookie"},
 	})
 
 	mux.Use(c.Handler)

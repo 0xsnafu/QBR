@@ -34,16 +34,16 @@ var App AppConfig
 func (app *AppConfig) Setup() {
 	rand.Seed(time.Now().UnixNano())
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	app.InProduction, _ = strconv.ParseBool(os.Getenv("IN_PRODUCTION"))
 
 	if App.InProduction {
 		app.DATABASE_URL = os.Getenv("DATABASE_URL")
 	} else {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		app.DBHost = os.Getenv("DB_HOST")
 		app.DBUser = os.Getenv("DB_USER")
 		app.DBPass = os.Getenv("DB_PASS")

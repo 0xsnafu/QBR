@@ -64,7 +64,7 @@ func NewCookie(token string, expiryDate time.Time) *http.Cookie {
 		Expires:  expiryDate,
 		HttpOnly: false,
 		Secure:   config.App.InProduction,
-		SameSite: http.SameSiteNoneMode,
+		SameSite: http.SameSiteLaxMode,
 	}
 }
 

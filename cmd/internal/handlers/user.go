@@ -119,7 +119,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, NewCookie(token, expiryDate))
 	w.Header().Set("Access-Control-Allow-Headers", "Set-Cookie")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
-	w.WriteHeader(http.StatusOK)
+	// w.WriteHeader(http.StatusOK)
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {

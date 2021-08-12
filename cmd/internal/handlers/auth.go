@@ -62,9 +62,8 @@ func NewCookie(token string, expiryDate time.Time) *http.Cookie {
 		Name:     "jwt",
 		Value:    token,
 		Expires:  expiryDate,
-		HttpOnly: false,
+		HttpOnly: true,
 		Secure:   config.App.InProduction,
-		SameSite: http.SameSiteLaxMode,
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/MartyMav/QBR/cmd/internal/config"
@@ -67,7 +68,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		To:       email,
 		From:     "quickbrainracers@gmail.com",
 		Subject:  "Quick Brain Racers: Verify your email",
-		Link:     "http://localhost:5000/verify-email/" + token,
+		Link:     os.Getenv("SERVER_URL") + "/verify-email/" + token,
 		Template: "verify-email.html",
 	}
 	config.App.MailChan <- msg

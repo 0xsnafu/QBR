@@ -224,3 +224,36 @@ func Respond(w http.ResponseWriter, status int, msg string) {
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(msg)
 }
+
+func SocialLogin(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		log.Println(err)
+	}
+
+	email := r.Form.Get("email")
+
+	expiryDate := time.Now().Add(time.Hour * 72) //3 days
+	user := models.User{
+		Email:      email,
+		IsVerified: true,
+	}
+
+	result := map[string]interface{}{}
+
+	//Check if user already exists
+	dbErr := database.DB.Model(&models.User{}).Where("email = ?", email).First(&result)
+	if errors.Is(dbErr.Error, gorm.ErrRecordNotFound) {
+		database.DB.Create(&user)
+	} else {
+		database.DB.Table("users").Where("email = ?", email).First(&user).Updates(models.User{IsVerified: true})
+	}
+
+	token, err := GenerateToken(user, expiryDate)
+	if err != nil {
+		Respond(w, http.StatusInternalServerError, "Could not log in")
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(token)
+}

@@ -27,6 +27,11 @@ func routes() http.Handler {
 		http.Redirect(w, r, "https://quickbrainracers.com", http.StatusSeeOther)
 	})
 
+	//Social Logins
+	mux.Post("/social/login", func(w http.ResponseWriter, r *http.Request) {
+		handlers.SocialLogin(w, r)
+	})
+
 	//Emails
 	mux.Post("/send-verify-email", func(w http.ResponseWriter, r *http.Request) {
 		handlers.SendVerifyEmail(w, r)

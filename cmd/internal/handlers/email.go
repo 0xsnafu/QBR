@@ -60,8 +60,7 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	database.DB.Table("users").Where("token = ?", userToken).Updates(models.User{IsVerified: true, Token: "."})
-	http.Redirect(w, r, os.Getenv("CLIENT_URL"), http.StatusSeeOther)
-	// http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/my-profile?verified=true", http.StatusSeeOther)
+	http.Redirect(w, r, os.Getenv("CLIENT_URL")+"/my-profile?verified=true", http.StatusSeeOther)
 
 }
 

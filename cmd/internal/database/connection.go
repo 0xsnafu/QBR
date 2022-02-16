@@ -1,8 +1,6 @@
 package database
 
 import (
-	"fmt"
-
 	"github.com/MartyMav/QBR/cmd/internal/config"
 	"github.com/MartyMav/QBR/cmd/internal/models"
 	"gorm.io/driver/postgres"
@@ -12,13 +10,7 @@ import (
 var DB *gorm.DB
 
 func Connect() {
-	var dsn string
-
-	if config.App.InProduction {
-		dsn = config.App.DATABASE_URL
-	} else {
-		dsn = fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=disable", config.App.DBHost, config.App.DBUser, config.App.DBPass, config.App.DBName, config.App.DBPort)
-	}
+	dsn := config.App.DATABASE_URL
 
 	connection, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {

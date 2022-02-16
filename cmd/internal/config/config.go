@@ -16,7 +16,6 @@ type AppConfig struct {
 	InProduction bool
 	Address      string
 	DATABASE_URL string
-	DBName       string
 	SecretKey    string
 	MailChan     chan models.MailData
 	MailHost     string
@@ -43,12 +42,7 @@ func (app *AppConfig) Setup() {
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		app.DBHost = os.Getenv("DB_HOST")
-		app.DBUser = os.Getenv("DB_USER")
-		app.DBPass = os.Getenv("DB_PASS")
-		app.DBPort, _ = strconv.Atoi(os.Getenv("DB_PORT"))
-		app.DBName = os.Getenv("DB_NAME")
+		app.DATABASE_URL = os.Getenv("DATABASE_URL")
 	}
 
 	app.Address = os.Getenv("ADDRESS")

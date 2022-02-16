@@ -27,16 +27,18 @@ func main() {
 
 	websocket.Rooms = make(map[*websocket.Room]bool)
 
-	port := os.Getenv("PORT")
-
-	fmt.Println("Starting Quick Brain Racers Server on " + port)
-
+	var port string
 	var portPrefix string
+
 	if config.App.InProduction {
 		portPrefix = ":"
+		port = os.Getenv("PORT")
 	} else {
 		portPrefix = "localhost:"
+		port = "5000"
 	}
+
+	fmt.Println("Starting Quick Brain Racers Server on " + port)
 
 	srv := &http.Server{
 		Addr:    portPrefix + port,

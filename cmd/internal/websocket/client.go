@@ -151,6 +151,57 @@ func (c *Client) readPump() {
 		json.Unmarshal([]byte(string(p)), &message)
 
 		switch message.Status {
+		case 3: //Check Pair of Cards
+			fmt.Println(message.Body)
+
+			firstCardIndex, _ := strconv.Atoi(message.Body[0])
+			secondCardIndex, _ := strconv.Atoi(message.Body[1])
+
+			if c.Room.Cards[firstCardIndex].Color == c.Room.Cards[secondCardIndex].Color {
+				fmt.Println("Matching pair: " + c.Room.Cards[secondCardIndex].Color)
+
+				c.Score++
+
+				//Client just answered the last question in the bank
+				if c.Score == len(c.Room.Cards)/2 {
+
+					//Set Elapsed Time - how long client took
+					t := time.Now()
+					elapsed := t.Sub(c.Room.StartTime)
+					c.ElapsedTime = elapsed.Truncate(time.Millisecond).String()
+
+					//Adds Client to end of ranking list
+					c.Room.Rankings = append(c.Room.Rankings, c.ID)
+
+					c.Room.Broadcast <- c.Room.GenerateMessage(8, c.Room.Rankings)
+
+					c.Room.Broadcast <- c.Room.GenerateMessage(2, nil) //Send client list to single client
+
+					//Only proceeds if there is a token(logged in), and is verified(wont have token unless verified)
+					if len(c.JWTToken) == 0 {
+						continue
+					} else {
+						//If there is a JWT, save results to DB for player
+						var isWinner bool
+						if c.Room.Rankings[0] == c.ID {
+							isWinner = true
+						}
+						handlers.SaveMatchResults(isWinner, c.DBID)
+					}
+				} else {
+					c.Room.Broadcast <- c.Room.GenerateMessage(2, nil) //Send client list to single client
+				}
+			}
+
+		case 4: //Get Cards
+
+			b, err := json.Marshal(c.Room.Cards)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			c.Send <- c.Room.GenerateMessage(5, []string{string(b)})
+
 		case 5: //Get Question
 			question := c.Room.QuestionBank[0]
 
@@ -183,6 +234,7 @@ func (c *Client) readPump() {
 					c.Room.Rankings = append(c.Room.Rankings, c.ID)
 
 					c.Room.Broadcast <- c.Room.GenerateMessage(8, c.Room.Rankings)
+					c.Room.Broadcast <- c.Room.GenerateMessage(2, nil) //Send client list to single client
 
 					//Only proceeds if there is a token(logged in), and is verified(wont have token unless verified)
 					if len(c.JWTToken) == 0 {
@@ -210,9 +262,9 @@ func (c *Client) readPump() {
 					c.QuestionIndex = question.Index
 
 					c.Send <- c.Room.GenerateMessage(5, []string{string(b)})
+					c.Room.Broadcast <- c.Room.GenerateMessage(2, nil) //Send client list to single client
 				}
 
-				c.Room.Broadcast <- c.Room.GenerateMessage(2, nil) //Send client list to single client
 			}
 		case 7: //Play Again - single player
 			c.Room.Unregister <- c

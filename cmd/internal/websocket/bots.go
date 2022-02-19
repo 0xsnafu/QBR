@@ -8,6 +8,7 @@ func (room *Room) GenerateBot() *Client {
 	minDelay := 1000
 	maxDelay := 3000
 
+	//Randomly selects difficulty of bot
 	switch rand.Intn(3) {
 	case 0:
 		minDelay = 900

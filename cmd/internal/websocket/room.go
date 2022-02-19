@@ -14,6 +14,8 @@ var Rooms map[*Room]bool
 type Room struct {
 	ID             string
 	MaxClients     int
+	GameType       string
+	Cards          []Card
 	QuestionBank   []Question
 	Rankings       []string
 	GameHasStarted bool
@@ -34,9 +36,13 @@ func generateRoomID() string {
 }
 
 func NewRoom(isPrivate bool) *Room {
+
+	gameType := "Memory" //should be random
+
 	return &Room{
 		ID:             generateRoomID(),
 		MaxClients:     4,
+		GameType:       gameType,
 		QuestionBank:   GenerateQuestionBank(),
 		Rankings:       make([]string, 0),
 		GameHasStarted: false,
@@ -108,7 +114,8 @@ func (room *Room) Start() {
 				return
 			}
 
-			client.Send <- room.GenerateMessage(3, []string{client.ID}) //Send client it's ID
+			client.Send <- room.GenerateMessage(3, []string{client.ID})     //Send client it's ID
+			client.Send <- room.GenerateMessage(6, []string{room.GameType}) //Send client Game Type
 
 			if client.InParty {
 				client.Send <- room.GenerateMessage(10, []string{client.Room.ID}) //Send client it's Room ID
@@ -189,8 +196,13 @@ func (room *Room) StartPreGame() {
 
 	//Resetting Room state
 	room.Rankings = nil
-	room.QuestionBank = GenerateQuestionBank()
 	room.GameHasStarted = false
+
+	if room.GameType == "Math" {
+		room.QuestionBank = GenerateQuestionBank()
+	} else if room.GameType == "Memory" {
+		room.Cards = GenerateCards()
+	}
 
 	if room.IsPrivate {
 		secondsLeft = timeToShowCountdown
@@ -207,23 +219,23 @@ func (room *Room) StartPreGame() {
 			case <-ticker.C:
 
 				//For now, a private room is a party room
-				if !room.IsPrivate {
-					if secondsLeft == timeToShowCountdown && len(room.Clients) != room.MaxClients {
-						room.IsJoinable = false //No more human players; remainder will be bots
+				// if !room.IsPrivate {
+				// 	if secondsLeft == timeToShowCountdown && len(room.Clients) != room.MaxClients {
+				// 		room.IsJoinable = false //No more human players; remainder will be bots
 
-						for i := len(room.Clients); i < room.MaxClients; i++ {
-							if len(room.Clients) == room.MaxClients { //User somehow joined last second
-								break
-							}
+				// 		for i := len(room.Clients); i < room.MaxClients; i++ {
+				// 			if len(room.Clients) == room.MaxClients { //User somehow joined last second
+				// 				break
+				// 			}
 
-							botUser := room.GenerateBot()
+				// 			botUser := room.GenerateBot()
 
-							room.Clients[botUser] = true
-						}
+				// 			room.Clients[botUser] = true
+				// 		}
 
-						room.Broadcast <- room.GenerateMessage(2, nil) //Broadcast client list
-					}
-				}
+				// 		room.Broadcast <- room.GenerateMessage(2, nil) //Broadcast client list
+				// 	}
+				// } TAKING BOTS OUT FOR MEMORY GAME DEV
 
 				//Room should be full with bots or players by this point...
 				if secondsLeft <= timeToShowCountdown {

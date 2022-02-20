@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -36,8 +37,8 @@ func generateRoomID() string {
 }
 
 func NewRoom(isPrivate bool) *Room {
-
-	gameType := "Memory" //should be random
+	gameTypes := strings.Split(os.Getenv("GAME_TYPES"), ",")
+	gameType := gameTypes[rand.Intn(len(gameTypes))] //Picks a Game Type at random
 
 	return &Room{
 		ID:             generateRoomID(),
@@ -219,23 +220,23 @@ func (room *Room) StartPreGame() {
 			case <-ticker.C:
 
 				//For now, a private room is a party room
-				// if !room.IsPrivate {
-				// 	if secondsLeft == timeToShowCountdown && len(room.Clients) != room.MaxClients {
-				// 		room.IsJoinable = false //No more human players; remainder will be bots
+				if !room.IsPrivate {
+					if secondsLeft == timeToShowCountdown && len(room.Clients) != room.MaxClients {
+						room.IsJoinable = false //No more human players; remainder will be bots
 
-				// 		for i := len(room.Clients); i < room.MaxClients; i++ {
-				// 			if len(room.Clients) == room.MaxClients { //User somehow joined last second
-				// 				break
-				// 			}
+						for i := len(room.Clients); i < room.MaxClients; i++ {
+							if len(room.Clients) == room.MaxClients { //User somehow joined last second
+								break
+							}
 
-				// 			botUser := room.GenerateBot()
+							botUser := room.GenerateBot()
 
-				// 			room.Clients[botUser] = true
-				// 		}
+							room.Clients[botUser] = true
+						}
 
-				// 		room.Broadcast <- room.GenerateMessage(2, nil) //Broadcast client list
-				// 	}
-				// } TAKING BOTS OUT FOR MEMORY GAME DEV
+						room.Broadcast <- room.GenerateMessage(2, nil) //Broadcast client list
+					}
+				} //TAKING BOTS OUT FOR MEMORY GAME DEV
 
 				//Room should be full with bots or players by this point...
 				if secondsLeft <= timeToShowCountdown {
@@ -246,6 +247,7 @@ func (room *Room) StartPreGame() {
 				if secondsLeft == 0 {
 					room.Broadcast <- room.GenerateMessage(1, nil)
 
+					room.IsJoinable = false
 					room.StartTime = time.Now()
 					room.GameHasStarted = true
 					go room.ManageBots()
@@ -280,11 +282,12 @@ func (room *Room) ManageBots() {
 						continue
 					}
 
-					if bot.AnswerDelay == 0 {
+					if bot.AnswerDelay == 0 { //Starting, or just answered a question(either right or wrong). Set delay for the next question
 						bot.AnswerDelay = rand.Intn(bot.MaximumDelay-bot.MinimumDelay) + bot.MinimumDelay
 					} else {
 						bot.AnswerDelayProgress += millisecondCount
 
+						//Bot has waited enough time...
 						if bot.AnswerDelayProgress >= bot.AnswerDelay {
 
 							rightOrWrong := rand.Intn(4)
@@ -296,19 +299,34 @@ func (room *Room) ManageBots() {
 								bot.AnswerDelayProgress = 0
 							case 1, 2, 3:
 								bot.Score++
-								bot.QuestionIndex++
 								bot.AnswerDelay = 0
 								bot.AnswerDelayProgress = 0
+
+								if room.GameType == "Math" {
+									bot.QuestionIndex++
+								}
 							}
 
 							//Bot finished
-							if bot.QuestionIndex > len(room.QuestionBank) {
-								t := time.Now()
-								elapsed := t.Sub(room.StartTime)
-								bot.ElapsedTime = elapsed.Truncate(time.Millisecond).String()
+							if room.GameType == "Math" {
+								if bot.QuestionIndex > len(room.QuestionBank) {
+									t := time.Now()
+									elapsed := t.Sub(room.StartTime)
+									bot.ElapsedTime = elapsed.Truncate(time.Millisecond).String()
 
-								room.Rankings = append(room.Rankings, bot.ID)
-								room.Broadcast <- room.GenerateMessage(8, room.Rankings)
+									room.Rankings = append(room.Rankings, bot.ID)
+									room.Broadcast <- room.GenerateMessage(8, room.Rankings)
+								}
+							} else if room.GameType == "Memory" {
+
+								if bot.Score >= len(room.Cards)/2 {
+									t := time.Now()
+									elapsed := t.Sub(room.StartTime)
+									bot.ElapsedTime = elapsed.Truncate(time.Millisecond).String()
+
+									room.Rankings = append(room.Rankings, bot.ID)
+									room.Broadcast <- room.GenerateMessage(8, room.Rankings)
+								}
 							}
 
 							room.Broadcast <- room.GenerateMessage(2, nil) //Send client list to ALL

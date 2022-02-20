@@ -152,14 +152,11 @@ func (c *Client) readPump() {
 
 		switch message.Status {
 		case 3: //Check Pair of Cards
-			fmt.Println(message.Body)
 
 			firstCardIndex, _ := strconv.Atoi(message.Body[0])
 			secondCardIndex, _ := strconv.Atoi(message.Body[1])
 
 			if c.Room.Cards[firstCardIndex].Color == c.Room.Cards[secondCardIndex].Color {
-				fmt.Println("Matching pair: " + c.Room.Cards[secondCardIndex].Color)
-
 				c.Score++
 
 				//Client just answered the last question in the bank

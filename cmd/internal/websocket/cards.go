@@ -26,33 +26,25 @@ func GenerateCards() []Card {
 	cards := make([]Card, numberOfCards)
 
 	for i := 1; i <= numberOfCards/2; i++ {
-		pair := GenerateCardPair(cards)
-
-		cards[pair[0].Index] = pair[0]
-		cards[pair[1].Index] = pair[1]
-
+		GenerateCardPair(cards)
 	}
 
 	return cards
 }
 
-func GenerateCardPair(cards []Card) []Card {
+func GenerateCardPair(cards []Card) {
 
-	pair := make([]Card, 2)
 	color := GetUniqueColor(cards)
 
 	for i := 0; i < 2; i++ {
 		card := Card{
-			Index:      GetAvailableIndex(cards), //issue: cards will not be updated. func can still select the same index twice!!
+			Index:      GetAvailableIndex(cards),
 			Color:      color,
 			IsSelected: false,
 			IsPaired:   false,
 		}
 		cards[card.Index] = card
-		pair[i] = card //Might not need this.....
 	}
-
-	return pair
 }
 
 func GetAvailableIndex(cards []Card) int {

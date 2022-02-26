@@ -140,7 +140,7 @@ func (room *Room) Start() {
 					delete(Rooms, room)
 				} else {
 
-					//Dont want people joining mid game
+					//Dont want people joining mid game - *** Not sure this makes sense...
 					if !room.GameHasStarted || client.InParty {
 						room.IsJoinable = true
 					}
@@ -160,7 +160,7 @@ func (room *Room) Start() {
 			}
 
 		case message := <-room.Broadcast:
-			if len(room.Clients) == 0 {
+			if len(room.Clients) == 0 { //Can't broadcast to empty room, should have been automatically deleted anyways
 				return
 			}
 
@@ -168,6 +168,7 @@ func (room *Room) Start() {
 				if client.IsABot { //No need to broadcast to a bot
 					continue
 				}
+
 				select {
 				case client.Send <- message:
 				default:

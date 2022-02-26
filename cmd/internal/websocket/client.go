@@ -159,7 +159,7 @@ func (c *Client) readPump() {
 			if c.Room.Cards[firstCardIndex].Color == c.Room.Cards[secondCardIndex].Color {
 				c.Score++
 
-				//Client just answered the last question in the bank
+				//Client matched all pairs
 				if c.Score == len(c.Room.Cards)/2 {
 
 					//Set Elapsed Time - how long client took

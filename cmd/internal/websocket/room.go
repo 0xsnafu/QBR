@@ -208,9 +208,10 @@ func (room *Room) StartPreGame() {
 
 	if room.IsPrivate {
 		secondsLeft = timeToShowCountdown
-	} else {
-		room.Broadcast <- room.GenerateMessage(4, nil)
 	}
+	// else {
+	// 	room.Broadcast <- room.GenerateMessage(4, nil)
+	// }
 
 	go func() {
 		for {
@@ -330,7 +331,7 @@ func (room *Room) ManageBots() {
 								}
 							}
 
-							room.Broadcast <- room.GenerateMessage(2, nil) //Send client list to ALL
+							room.Broadcast <- room.GenerateMessage(7, nil) //Send score to ALL
 						}
 					}
 				}

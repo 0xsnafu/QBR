@@ -83,18 +83,30 @@ func GetClientList(room *Room) []string {
 	clientList := make([]string, 0)
 
 	for client := range room.Clients {
+
+		//Find the index of the client id, for client side order
+		currentOrderIndex := 0
+		for _, c := range room.ClientOrder {
+			if string(c) == client.ID {
+				break
+			}
+			currentOrderIndex++
+		}
+
 		b, err := json.Marshal(struct {
-			ID          string `json:"id"`
-			Username    string `json:"username"`
-			ElapsedTime string `json:"elapsedTime"`
-			IsHost      bool   `json:"isHost"`
-			Score       int    `json:"score"`
+			ID                string `json:"id"`
+			Username          string `json:"username"`
+			ElapsedTime       string `json:"elapsedTime"`
+			IsHost            bool   `json:"isHost"`
+			Score             int    `json:"score"`
+			CurrentOrderIndex int    `json:"currentOrderIndex"`
 		}{
-			ID:          client.ID,
-			Username:    client.Username,
-			ElapsedTime: client.ElapsedTime,
-			IsHost:      client.IsHost,
-			Score:       client.Score,
+			ID:                client.ID,
+			Username:          client.Username,
+			ElapsedTime:       client.ElapsedTime,
+			IsHost:            client.IsHost,
+			Score:             client.Score,
+			CurrentOrderIndex: currentOrderIndex,
 		})
 		if err != nil {
 			fmt.Println(err)

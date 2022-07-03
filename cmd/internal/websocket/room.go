@@ -26,6 +26,7 @@ type Room struct {
 	Register       chan *Client
 	Unregister     chan *Client
 	Clients        map[*Client]bool
+	ClientOrder    []string
 	Broadcast      chan []byte
 }
 
@@ -52,6 +53,7 @@ func NewRoom(isPrivate bool) *Room {
 		Register:       make(chan *Client),
 		Unregister:     make(chan *Client),
 		Clients:        make(map[*Client]bool),
+		ClientOrder:    make([]string, 0),
 		Broadcast:      make(chan []byte),
 	}
 }
@@ -106,11 +108,13 @@ func (room *Room) Start() {
 		select {
 		case client := <-room.Register:
 			room.Clients[client] = true
+			room.ClientOrder = append(room.ClientOrder, client.ID)
 
 			client.Room = room
 			client.Score = 0
 			client.ElapsedTime = ""
 
+			//Bot should never be registering anyways; manually handled upon creation
 			if client.IsABot {
 				return
 			}
@@ -132,6 +136,20 @@ func (room *Room) Start() {
 		case client := <-room.Unregister:
 			if _, ok := room.Clients[client]; ok {
 				delete(room.Clients, client)
+
+				//Find the index of the client id to delete
+				indexToDelete := 0
+				for _, c := range room.ClientOrder {
+					if string(c) == client.ID {
+						break
+					}
+					indexToDelete++
+				}
+
+				// Remove the element at index i(indexToDelete) from a(room.ClientOrder).
+				copy(room.ClientOrder[indexToDelete:], room.ClientOrder[indexToDelete+1:]) // Shift a[i+1:] left one index.
+				room.ClientOrder[len(room.ClientOrder)-1] = ""                             // Erase last element (write zero value).
+				room.ClientOrder = room.ClientOrder[:len(room.ClientOrder)-1]              // Truncate slice.
 
 				client.InParty = false
 
@@ -232,6 +250,7 @@ func (room *Room) StartPreGame() {
 							}
 
 							botUser := room.GenerateBot()
+							room.ClientOrder = append(room.ClientOrder, botUser.ID)
 
 							room.Clients[botUser] = true
 						}

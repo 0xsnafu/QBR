@@ -26,9 +26,14 @@ func (room *Room) GenerateMessage(status int, data []string) []byte {
 		scores := make([]string, len(room.Clients))
 		index := 0
 
-		for client := range room.Clients {
-			scores[index] = strconv.Itoa(client.Score)
-			index++
+		for _, cID := range room.ClientOrder {
+			for client := range room.Clients {
+
+				if string(cID) == client.ID {
+					scores[index] = strconv.Itoa(client.Score)
+					index++
+				}
+			}
 		}
 		message.Body = scores
 	} else {
